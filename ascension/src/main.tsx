@@ -4,6 +4,7 @@ import App from "./App.tsx";
 import "./index.css";
 import { setup } from "./dojo/setup";
 import { DojoProvider } from "./DojoContext";
+import { GameProvider } from "./GameContext";
 
 async function init() {
     const rootElement = document.getElementById("root");
@@ -14,7 +15,9 @@ async function init() {
     root.render(
         <React.StrictMode>
             <DojoProvider value={setupResult}>
-                <App />
+                <GameProvider>
+                    <App />
+                </GameProvider>
             </DojoProvider>
         </React.StrictMode>
     );

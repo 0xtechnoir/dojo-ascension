@@ -18,6 +18,7 @@ echo "--------------------------------------------------------------------------
 COMPONENTS=("Position" "Moves" )
 
 for component in ${COMPONENTS[@]}; do
+    # echo Executing Command: sozo auth writer $component $ACTIONS_ADDRESS '--world' $WORLD_ADDRESS '--rpc-url' $RPC_URL
     sozo auth writer $component $ACTIONS_ADDRESS --world $WORLD_ADDRESS --rpc-url $RPC_URL
 done
 

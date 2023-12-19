@@ -29,6 +29,87 @@ struct Moves {
     last_direction: Direction
 }
 
+#[derive(Model, Drop, Serde)]
+struct Health {
+    #[key]
+    player: ContractAddress,
+    value: u8,
+}
+
+#[derive(Model, Drop, Serde)]
+struct ActionPoint {
+    #[key]
+    player: ContractAddress,
+    value: u8,
+}
+
+#[derive(Model, Drop, Serde)]
+struct VotingPoint {
+    #[key]
+    player: ContractAddress,
+    value: u8,
+}
+
+#[derive(Model, Drop, Serde)]
+struct Username {
+    #[key]
+    player: ContractAddress,
+    value: felt252,
+}
+
+#[derive(Model, Drop, Serde)]
+struct LastActionPointClaim {
+    #[key]
+    player: ContractAddress,
+    value: u32,
+}
+
+#[derive(Model, Drop, Serde)]
+struct LastVotingPointClaim {
+    #[key]
+    player: ContractAddress,
+    value: u32,
+}
+
+#[derive(Model, Drop, Serde)]
+struct ClaimInterval {
+    #[key]
+    player: ContractAddress,
+    value: u32,
+}
+
+#[derive(Model, Drop, Serde)]
+struct Player {
+    #[key]
+    player: ContractAddress,
+    inGame: u32,
+}
+
+#[derive(Model, Drop, Serde)]
+struct Alive {
+    #[key]
+    player: ContractAddress,
+    value: bool,
+}
+
+#[derive(Model, Drop, Serde)]
+struct Range {
+    #[key]
+    player: ContractAddress,
+    value: u32,
+}
+
+#[derive(Model, Drop, Serde)]
+struct GameSession {
+    #[key]
+    id: u32,
+    isLive: bool,
+    startTime: u32,
+    gameId: u32,
+    players: u8,
+    isWon: bool,
+}
+
 #[derive(Copy, Drop, Serde, Introspect)]
 struct Vec2 {
     x: u32,

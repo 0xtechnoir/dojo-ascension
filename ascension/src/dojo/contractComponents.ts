@@ -3,39 +3,175 @@
 import { defineComponent, Type as RecsType, World } from "@dojoengine/recs";
 
 export function defineContractComponents(world: World) {
-    return {
-        Moves: (() => {
-            return defineComponent(
-                world,
-                {
-                    player: RecsType.BigInt,
-                    remaining: RecsType.Number,
-                    last_direction: RecsType.Number,
-                },
-                {
-                    metadata: {
-                        name: "Moves",
-                        types: ["contractaddress", "u8", "enum"],
-                        customTypes: ["Direction"],
-                    },
-                }
-            );
-        })(),
-        Position: (() => {
-            return defineComponent(
-                world,
-                {
-                    player: RecsType.BigInt,
-                    vec: { x: RecsType.Number, y: RecsType.Number },
-                },
-                {
-                    metadata: {
-                        name: "Position",
-                        types: ["contractaddress", "u32", "u32"],
-                        customTypes: ["Vec2"],
-                    },
-                }
-            );
-        })(),
-    };
+  return {
+	  ActionPoint: (() => {
+	    return defineComponent(
+	      world,
+	      { player: RecsType.BigInt, value: RecsType.Number },
+	      {
+	        metadata: {
+	          name: "ActionPoint",
+	          types: ["contractaddress","u8"],
+	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
+	  Alive: (() => {
+	    return defineComponent(
+	      world,
+	      { player: RecsType.BigInt, value: RecsType.Boolean },
+	      {
+	        metadata: {
+	          name: "Alive",
+	          types: ["contractaddress","bool"],
+	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
+	  ClaimInterval: (() => {
+	    return defineComponent(
+	      world,
+	      { player: RecsType.BigInt, value: RecsType.Number },
+	      {
+	        metadata: {
+	          name: "ClaimInterval",
+	          types: ["contractaddress","u32"],
+	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
+	  GameSession: (() => {
+	    return defineComponent(
+	      world,
+	      { id: RecsType.Number, isLive: RecsType.Boolean, startTime: RecsType.Number, gameId: RecsType.Number, players: RecsType.Number, isWon: RecsType.Boolean },
+	      {
+	        metadata: {
+	          name: "GameSession",
+	          types: ["u32","bool","u32","u32","u8","bool"],
+	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
+	  Health: (() => {
+	    return defineComponent(
+	      world,
+	      { player: RecsType.BigInt, value: RecsType.Number },
+	      {
+	        metadata: {
+	          name: "Health",
+	          types: ["contractaddress","u8"],
+	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
+	  LastActionPointClaim: (() => {
+	    return defineComponent(
+	      world,
+	      { player: RecsType.BigInt, value: RecsType.Number },
+	      {
+	        metadata: {
+	          name: "LastActionPointClaim",
+	          types: ["contractaddress","u32"],
+	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
+	  LastVotingPointClaim: (() => {
+	    return defineComponent(
+	      world,
+	      { player: RecsType.BigInt, value: RecsType.Number },
+	      {
+	        metadata: {
+	          name: "LastVotingPointClaim",
+	          types: ["contractaddress","u32"],
+	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
+	  Moves: (() => {
+	    return defineComponent(
+	      world,
+	      { player: RecsType.BigInt, remaining: RecsType.Number, last_direction: RecsType.Number },
+	      {
+	        metadata: {
+	          name: "Moves",
+	          types: ["contractaddress","u8","enum"],
+	          customTypes: ["Direction"],
+	        },
+	      }
+	    );
+	  })(),
+	  Player: (() => {
+	    return defineComponent(
+	      world,
+	      { player: RecsType.BigInt, inGame: RecsType.Number },
+	      {
+	        metadata: {
+	          name: "Player",
+	          types: ["contractaddress","u32"],
+	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
+	  Position: (() => {
+	    return defineComponent(
+	      world,
+	      { player: RecsType.BigInt, vec: { x: RecsType.Number, y: RecsType.Number } },
+	      {
+	        metadata: {
+	          name: "Position",
+	          types: ["contractaddress","u32","u32"],
+	          customTypes: ["Vec2"],
+	        },
+	      }
+	    );
+	  })(),
+	  Range: (() => {
+	    return defineComponent(
+	      world,
+	      { player: RecsType.BigInt, value: RecsType.Number },
+	      {
+	        metadata: {
+	          name: "Range",
+	          types: ["contractaddress","u32"],
+	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
+	  Username: (() => {
+	    return defineComponent(
+	      world,
+	      { player: RecsType.BigInt, value: RecsType.BigInt },
+	      {
+	        metadata: {
+	          name: "Username",
+	          types: ["contractaddress","felt252"],
+	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
+	  VotingPoint: (() => {
+	    return defineComponent(
+	      world,
+	      { player: RecsType.BigInt, value: RecsType.Number },
+	      {
+	        metadata: {
+	          name: "VotingPoint",
+	          types: ["contractaddress","u8"],
+	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
+  };
 }
