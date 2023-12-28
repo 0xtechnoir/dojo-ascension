@@ -19,16 +19,16 @@ type Props = {
     y: number;
     emoji: string;
   }[];
-  players?: {
+  players: {
     x: number;
     y: number;
     emoji: string;
-    entity: Entity | null;
+    entity: Entity;
   }[];
-  onRightClickPlayer: (
-    event: React.MouseEvent,
-    playerEntity: Entity | null
-  ) => void;
+  // onRightClickPlayer: (
+  //   event: React.MouseEvent,
+  //   playerEntity: Entity | null
+  // ) => void;
 };
 
 export const GameMap = ({
@@ -36,7 +36,7 @@ export const GameMap = ({
   height,
   onTileClick,
   players,
-  onRightClickPlayer,
+  // onRightClickPlayer,
 }: Props) => {
   
   // const {
@@ -65,13 +65,13 @@ export const GameMap = ({
   //   );
   // }
 
-  const handlePlayerRightClick = (
-    event: React.MouseEvent,
-    playerEntity: Entity | null
-  ) => {
-    event.preventDefault();
-    onRightClickPlayer(event, playerEntity);
-  };
+  // const handlePlayerRightClick = (
+  //   event: React.MouseEvent,
+  //   playerEntity: Entity | null
+  // ) => {
+  //   event.preventDefault();
+  //   onRightClickPlayer(event, playerEntity);
+  // };
 
   const rows = new Array(width).fill(0).map((_, i) => i);
   const columns = new Array(height).fill(0).map((_, i) => i);
@@ -123,12 +123,12 @@ export const GameMap = ({
               onClick={() => {
                 onTileClick?.(x, y);
               }}
-              onContextMenu={
-                hasPlayers
-                  ? (event) =>
-                      handlePlayerRightClick(event, playersHere[0].entity)
-                  : undefined
-              }
+              // onContextMenu={
+              //   hasPlayers
+              //     ? (event) =>
+              //         handlePlayerRightClick(event, playersHere[0].entity)
+              //     : undefined
+              // }
             >
               <div className="flex flex-wrap gap-1 items-center justify-center relative">
                 <div className="relative">

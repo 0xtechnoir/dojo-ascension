@@ -46,11 +46,11 @@ export function defineContractComponents(world: World) {
 	  GameSession: (() => {
 	    return defineComponent(
 	      world,
-	      { id: RecsType.Number, isLive: RecsType.Boolean, startTime: RecsType.Number, gameId: RecsType.Number, players: RecsType.Number, isWon: RecsType.Boolean },
+	      { id: RecsType.BigInt, isLive: RecsType.Boolean, startTime: RecsType.BigInt, gameId: RecsType.BigInt, players: RecsType.Number, isWon: RecsType.Boolean },
 	      {
 	        metadata: {
 	          name: "GameSession",
-	          types: ["u32","bool","u32","u32","u8","bool"],
+	          types: ["felt252","bool","felt252","felt252","u8","bool"],
 	          customTypes: [],
 	        },
 	      }
@@ -111,11 +111,11 @@ export function defineContractComponents(world: World) {
 	  Player: (() => {
 	    return defineComponent(
 	      world,
-	      { player: RecsType.BigInt, inGame: RecsType.Number },
+	      { player: RecsType.BigInt, gameId: RecsType.BigInt },
 	      {
 	        metadata: {
 	          name: "Player",
-	          types: ["contractaddress","u32"],
+	          types: ["contractaddress","felt252"],
 	          customTypes: [],
 	        },
 	      }
@@ -124,11 +124,11 @@ export function defineContractComponents(world: World) {
 	  Position: (() => {
 	    return defineComponent(
 	      world,
-	      { player: RecsType.BigInt, vec: { x: RecsType.Number, y: RecsType.Number } },
+	      { player: RecsType.BigInt, game_id: RecsType.BigInt, vec: { x: RecsType.Number, y: RecsType.Number } },
 	      {
 	        metadata: {
 	          name: "Position",
-	          types: ["contractaddress","u32","u32"],
+	          types: ["contractaddress","felt252","u32","u32"],
 	          customTypes: ["Vec2"],
 	        },
 	      }
@@ -143,6 +143,19 @@ export function defineContractComponents(world: World) {
 	          name: "Range",
 	          types: ["contractaddress","u32"],
 	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
+	  Square: (() => {
+	    return defineComponent(
+	      world,
+	      { game_id: RecsType.BigInt, vec: { x: RecsType.Number, y: RecsType.Number }, piece: RecsType.Number },
+	      {
+	        metadata: {
+	          name: "Square",
+	          types: ["felt252","u32","u32","enum"],
+	          customTypes: ["Vec2","PieceType"],
 	        },
 	      }
 	    );

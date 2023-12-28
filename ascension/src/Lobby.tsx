@@ -29,12 +29,12 @@ const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
   const allGameSessions = useEntityQuery([Has(GameSession)]);
   const allGameIds = allGameSessions.map((entity) => {
     const rec = getComponentValue(GameSession, entity);
-    return rec?.gameId;
+    return Number(rec?.gameId);
   });
 
   const handleCreateGame = () => {
     // generate a unique 9-digit gameId
-    let gameId;
+    let gameId: number;
     while (true) {
       gameId = Math.floor(100000000 + Math.random() * 900000000);
       if (!allGameIds.includes(gameId)) {
@@ -100,7 +100,7 @@ const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
                 type="text"
                 className="text-black mr-4 border border-gray-300 rounded-md h-10 px-3"
                 placeholder="Enter Game ID"
-                value={inputGameID ? inputGameID : ""}
+                value={inputGameID ? inputGameID.toString() : ""} // TODO: must be a better way to do this
                 onChange={(e) => setInputGameID(Number(e.target.value))}
               />
             </div>

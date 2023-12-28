@@ -21,6 +21,21 @@ impl DirectionIntoFelt252 of Into<Direction, felt252> {
     }
 }
 
+#[derive(Serde, Drop, Copy, PartialEq, Introspect)]
+enum PieceType {
+    Player: (),
+    None: ()
+}
+
+#[derive(Model, Drop, Serde)]
+struct Square {
+    #[key]
+    game_id: felt252,
+    #[key]
+    vec: Vec2,
+    piece: PieceType,
+}
+
 #[derive(Model, Drop, Serde)]
 struct Moves {
     #[key]
@@ -82,7 +97,7 @@ struct ClaimInterval {
 struct Player {
     #[key]
     player: ContractAddress,
-    inGame: u32,
+    gameId: felt252,
 }
 
 #[derive(Model, Drop, Serde)]
@@ -102,10 +117,10 @@ struct Range {
 #[derive(Model, Drop, Serde)]
 struct GameSession {
     #[key]
-    id: u32,
+    id: felt252,
     isLive: bool,
-    startTime: u32,
-    gameId: u32,
+    startTime: felt252,
+    gameId: felt252,
     players: u8,
     isWon: bool,
 }
@@ -120,8 +135,16 @@ struct Vec2 {
 struct Position {
     #[key]
     player: ContractAddress,
+    game_id: felt252,
     vec: Vec2,
 }
+
+// #[derive(Model, Copy, Drop, Serde)]
+// struct Position {
+//     #[key]
+//     player: ContractAddress,
+//     vec: Vec2,
+// }
 
 trait Vec2Trait {
     fn is_zero(self: Vec2) -> bool;

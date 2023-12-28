@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Has, HasValue, Entity, getComponentValueStrict } from "@dojoengine/recs";
+import { Has, HasValue, Entity, getComponentValueStrict, getComponentValue } from "@dojoengine/recs";
 import { useComponentValue, useEntityQuery } from "@dojoengine/react";
 import { GameMap } from "./GameMap";
 import { useKeyboardMovement } from "./useKeyboardMovement";
@@ -21,20 +21,15 @@ interface ContextMenuState {
 
 export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
   const [showUsernameInput, setShowUsernameInput] = useState(false);
-  const [contextMenu, setContextMenu] = useState<ContextMenuState>({
-    visible: false,
-    x: 0,
-    y: 0,
-    playerEntity: null,
-  });
+  // const [contextMenu, setContextMenu] = useState<ContextMenuState>({
+  //   visible: false,
+  //   x: 0,
+  //   y: 0,
+  //   playerEntity: null,
+  // });
   const { displayMessage, highlightedPlayer, setHighlightedPlayer } =
     useGameContext();
   const containerRef = useRef<HTMLDivElement>(null); // Create a ref for the container
-  
-  // const {
-  //   components: { MapConfig, Player, Position, Alive },
-  //   network: { playerEntity },
-  // } = useMUD();
 
   const {
     setup: {
@@ -47,67 +42,69 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
 
   const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
 
-  const closeContextMenu = () => {
-    setContextMenu({ visible: false, x: 0, y: 0, playerEntity: null });
-  };
+  // const closeContextMenu = () => {
+  //   setContextMenu({ visible: false, x: 0, y: 0, playerEntity: null });
+  // };
 
-  const onRightClickPlayer = (
-    event: React.MouseEvent,
-    clickedPlayerEntity: Entity | null
-  ) => {
-    if (clickedPlayerEntity === playerEntity) {
-      return;
-    }
+  // const onRightClickPlayer = (
+  //   event: React.MouseEvent,
+  //   clickedPlayerEntity: Entity | null
+  // ) => {
+  //   if (clickedPlayerEntity === playerEntity) {
+  //     return;
+  //   }
 
-    if (clickedPlayerEntity === null) {
-      return;
-    }
+  //   if (clickedPlayerEntity === null) {
+  //     return;
+  //   }
 
-    event.preventDefault();
-    setHighlightedPlayer(clickedPlayerEntity);
-    // Get the bounding rectangle of the container
-    const containerRect = containerRef.current?.getBoundingClientRect();
-    if (containerRect) {
-      // Calculate the position relative to the container
-      const x = event.clientX - containerRect.left + 50;
-      const y = event.clientY - containerRect.top;
-      setContextMenu({
-        visible: true,
-        x: x,
-        y: y,
-        playerEntity: clickedPlayerEntity,
-      });
-    }
-  };
+  //   event.preventDefault();
+  //   setHighlightedPlayer(clickedPlayerEntity);
+  //   // Get the bounding rectangle of the container
+  //   const containerRect = containerRef.current?.getBoundingClientRect();
+  //   if (containerRect) {
+  //     // Calculate the position relative to the container
+  //     const x = event.clientX - containerRect.left + 50;
+  //     const y = event.clientY - containerRect.top;
+  //     setContextMenu({
+  //       visible: true,
+  //       x: x,
+  //       y: y,
+  //       playerEntity: clickedPlayerEntity,
+  //     });
+  //   }
+  // };
 
-  useEffect(() => {
-    document.addEventListener("click", closeContextMenu);
-    return () => {
-      document.removeEventListener("click", closeContextMenu);
-    };
-  }, []);
+  // useEffect(() => {
+  //   document.addEventListener("click", closeContextMenu);
+  //   return () => {
+  //     document.removeEventListener("click", closeContextMenu);
+  //   };
+  // }, []);
 
   const deadPlayers = useEntityQuery([
     Has(Player),
     HasValue(Alive, { value: false }),
   ]);
 
+  console.log('players: ', players);
+
   const mappedPlayers = players.map((entity) => {
-    const position = getComponentValueStrict(Position, entity);
-    let emoji = "";
-    // if entity is not in the deadPlayers array give it the rocket emoji, otherwise give it the skull emoji
-    if (!deadPlayers.includes(entity)) {
-      emoji = entity === playerEntity ? "🚀" : "🛸";
-    } else {
-      emoji = "💀";
-    }
+    console.log('entity: ', entity);
+    const playerId = getComponentValue(Player, entity)?.player;
+    const position = getComponentValue(Position, entity);
+    console.log('position: ', position);
+    if (!position) return null;
+    
+    let emoji = !deadPlayers.includes(entity) ? (entity === playerEntity ? "🚀" : "🛸") : "💀";
+    console.log ('emoji: ', emoji);
     return {
       entity,
       x: position.vec.x,
       y: position.vec.y,
       emoji: emoji,
     };
-  });
+  }).filter(player => player !== null);
 
   const closeModal = () => {
     setShowUsernameInput(false);
@@ -136,16 +133,19 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
   // }, [moveMessage]);
 
   // Function to handle the button click
-  const selectPlayer = (inputX: number, inputY: number) => {
-    const player = mappedPlayers.find((player) => {
-      const position = getComponentValueStrict(Position, player.entity);
-      return position.vec.x === inputX && position.vec.y === inputY;
-    });
+  // const selectPlayer = (inputX: number, inputY: number) => {
+  //   const player = mappedPlayers.find((player) => {
+  //     if (!player) {
+  //       return;
+  //     }
+  //     const position = getComponentValueStrict(Position, player.entity);
+  //     return position.vec.x === inputX && position.vec.y === inputY;
+  //   });
 
-    if (player) {
-      setHighlightedPlayer(player.entity);
-    }
-  };
+  //   if (player) {
+  //     setHighlightedPlayer(player.entity);
+  //   }
+  // };
 
   // Get map width and height from MapConfig component
   // const mapConfig = useComponentValue(MapConfig, singletonEntity);
@@ -208,23 +208,26 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
         <GameMap
           width={width}
           height={height}
-          onTileClick={selectPlayer}
+          // onTileClick={selectPlayer}
           players={mappedPlayers}
-          onRightClickPlayer={onRightClickPlayer}
+          // onRightClickPlayer={onRightClickPlayer}
         />
-        {contextMenu.playerEntity && contextMenu.visible && (
-          <div
-            className="context-menu"
-            style={{
-              position: "absolute",
-              left: `${contextMenu.x}px`,
-              top: `${contextMenu.y}px`,
-            }}
-          >
-            {/* <PlayerComponet entity={contextMenu.playerEntity} /> */}
-          </div>
-        )}
+        {/* contect menu here */}
       </div>
     </div>
   );
 };
+
+
+// {contextMenu.playerEntity && contextMenu.visible && (
+//   <div
+//     className="context-menu"
+//     style={{
+//       position: "absolute",
+//       left: `${contextMenu.x}px`,
+//       top: `${contextMenu.y}px`,
+//     }}
+//   >
+//     {/* <PlayerComponet entity={contextMenu.playerEntity} /> */}
+//   </div>
+// )}

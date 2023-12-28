@@ -22,10 +22,9 @@ const SpawnModal: React.FC<SpawnModalProps> = ({
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [enteredUsername, setEnteredUsername] = useState("");
-  const { gameId } = useGameContext();
 
   // Contexts
-  const { displayMessage } = useGameContext();
+  const { displayMessage, gameId } = useGameContext();
 
   const {
     setup: {
@@ -63,7 +62,7 @@ const SpawnModal: React.FC<SpawnModalProps> = ({
       if (!gameId) {
         throw new Error("No game ID found");
       }
-      await spawn(sanitizedUsername, gameId);
+      await spawn(account, sanitizedUsername, gameId);
       setShowSpawnButton(false);
     } catch (error) {
       console.log("handleModalSubmit error: ", error);

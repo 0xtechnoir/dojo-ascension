@@ -1,6 +1,7 @@
 import { SetupNetworkResult } from "./setupNetwork";
 import { Account } from "starknet";
-import { Entity, getComponentValue } from "@dojoengine/recs";
+import { Entity, HasValue, getEntitiesWithValue, getComponentValue } from "@dojoengine/recs";
+import { useEntityQuery } from "@dojoengine/react";
 import { uuid } from "@latticexyz/utils";
 import { ClientComponents } from "./createClientComponents";
 import { Direction, updatePositionWithDirection } from "../utils";
@@ -9,40 +10,22 @@ import {
     getEvents,
     setComponentsFromEvents,
 } from "@dojoengine/utils";
+import { shortString } from "starknet";
 
 export type SystemCalls = ReturnType<typeof createSystemCalls>;
 
 export function createSystemCalls(
     { execute, contractComponents }: SetupNetworkResult,
-    { Position, Moves }: ClientComponents
-) {
-    // const spawn = async (signer: Account) => {
-    //     const entityId = getEntityIdFromKeys([
-    //         BigInt(signer.address),
-    //     ]) as Entity;
+    { Position, Moves, Player, GameSession }: ClientComponents
+) { 
 
-    //     const positionId = uuid();
-    //     Position.addOverride(positionId, {
-    //         entity: entityId,
-    //         value: { player: BigInt(entityId), vec: { x: 10, y: 10 } },
-    //     });
-
-    //     const movesId = uuid();
-    //     Moves.addOverride(movesId, {
-    //         entity: entityId,
-    //         value: {
-    //             player: BigInt(entityId),
-    //             remaining: 100,
-    //             last_direction: 0,
-    //         },
-    //     });
-
+    // const createGameSession = async (signer: Account, gameId: number, timestamp: number) => {
     //     try {
     //         const { transaction_hash } = await execute(
     //             signer,
     //             "actions",
-    //             "spawn",
-    //             []
+    //             "spawn_game",
+    //             [gameId, timestamp]
     //         );
 
     //         setComponentsFromEvents(
@@ -55,21 +38,67 @@ export function createSystemCalls(
     //         );
     //     } catch (e) {
     //         console.log(e);
-    //         Position.removeOverride(positionId);
-    //         Moves.removeOverride(movesId);
-    //     } finally {
-    //         Position.removeOverride(positionId);
-    //         Moves.removeOverride(movesId);
     //     }
-    // };
+    // }
 
-    const spawn = async (username: String, gameId: number) => {
-        console.log("spawn");
-    }
+    const spawn = async (signer: Account, username: string, gameId: number) => {
+        // console.log("signer", signer);
+        // console.log('username', username);
+        // console.log('gameId', gameId);
+        const encodedUsername: string = shortString.encodeShortString(username);
+        const timestamp = Date.now();
+        const entityId = getEntityIdFromKeys([
+            BigInt(signer.address),
+        ]) as Entity;
+
+        const playerId = uuid();
+        Player.addOverride(playerId, {
+        entity: entityId,
+        value: { gameId: BigInt(gameId) },
+        });
+
+        // console.log("signer", signer);
+
+        try {
+            const { transaction_hash } = await execute(
+                signer,
+                "actions",
+                "spawn",
+                // [timestamp, encodedUsername, gameId]
+                []
+            );
+
+            setComponentsFromEvents(
+                contractComponents,
+                getEvents(
+                    await signer.waitForTransaction(transaction_hash, {
+                        retryInterval: 100,
+                    })
+                )
+            );
+        } catch (e) {
+            console.log(e);
+            Player.removeOverride(playerId);
+        } finally {
+            Player.removeOverride(playerId);
+        }
+    };
+
+    // const spawn = async (username: String, gameId: number) => {
+    //     console.log("spawn");
+    // }
 
     const moveBy = async (deltaX: number, deltaY: number, gameId: number) => {
         console.log("moveBy");
     }
+
+    const startMatch = async (
+        gameId: number,
+        playersSpawned: number,
+        startTime: number
+      ) => {
+        console.log("startMatch called");
+      };
 
     // const move = async (signer: Account, direction: Direction) => {
     //     const entityId = getEntityIdFromKeys([
@@ -162,5 +191,6 @@ export function createSystemCalls(
         vote,
         claimVotingPoint,
         leaveGame,
+        startMatch,
     };
 }
