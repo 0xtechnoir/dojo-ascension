@@ -3,7 +3,6 @@ import { Has, HasValue, Entity, getComponentValue } from "@dojoengine/recs";
 import { useEffect, useState } from "react";
 import "./App.css";
 import { useDojo } from "./DojoContext";
-import { Direction } from "./utils";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { GameBoard } from "./GameBoard";
 import { useGameContext } from "./GameContext";
@@ -52,7 +51,7 @@ function App() {
     // entity id we are syncing
     const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
     const gameSessions = useEntityQuery([Has(GameSession)]);
-    const currentGameID = Number(useComponentValue(Player, entityId)?.gameId);
+    const currentGameID = useComponentValue(Player, entityId)?.gameId;
 
     // get current component values
     // const position = useComponentValue(Position, entityId);
@@ -94,7 +93,7 @@ function App() {
           const gameSession = gameSessions[i];
           const rec = getComponentValue(GameSession, gameSession);
           // console.dir(rec);
-          if (rec && Number(rec?.gameId) === gameId) {
+          if (rec && rec?.gameId === gameId) {
             gameIsLive = rec.isLive;
             setGameIsWon(rec.isWon);
           }
@@ -206,7 +205,7 @@ function App() {
                       <p>
                         Game ID:{" "}
                         <strong className="text-orange-500 bg-gray-800 p-1 rounded-md">
-                          {currentGameID}
+                          {String(currentGameID)}
                         </strong>
                         (Share this with other players so they can join your game)
                       </p>

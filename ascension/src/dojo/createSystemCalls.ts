@@ -1,10 +1,8 @@
 import { SetupNetworkResult } from "./setupNetwork";
 import { Account } from "starknet";
-import { Entity, HasValue, getEntitiesWithValue, getComponentValue } from "@dojoengine/recs";
-import { useEntityQuery } from "@dojoengine/react";
+import { Entity } from "@dojoengine/recs";
 import { uuid } from "@latticexyz/utils";
 import { ClientComponents } from "./createClientComponents";
-import { Direction, updatePositionWithDirection } from "../utils";
 import {
     getEntityIdFromKeys,
     getEvents,
@@ -41,7 +39,7 @@ export function createSystemCalls(
     //     }
     // }
 
-    const spawn = async (signer: Account, username: string, gameId: number) => {
+    const spawn = async (signer: Account, username: string, gameId: bigint) => {
         // console.log("signer", signer);
         // console.log('username', username);
         // console.log('gameId', gameId);
@@ -54,7 +52,7 @@ export function createSystemCalls(
         const playerId = uuid();
         Player.addOverride(playerId, {
         entity: entityId,
-        value: { gameId: BigInt(gameId) },
+        value: { gameId: gameId },
         });
 
         // console.log("signer", signer);
@@ -64,8 +62,7 @@ export function createSystemCalls(
                 signer,
                 "actions",
                 "spawn",
-                // [timestamp, encodedUsername, gameId]
-                []
+                [timestamp, encodedUsername, gameId]
             );
 
             setComponentsFromEvents(
@@ -88,12 +85,12 @@ export function createSystemCalls(
     //     console.log("spawn");
     // }
 
-    const moveBy = async (deltaX: number, deltaY: number, gameId: number) => {
+    const moveBy = async (deltaX: number, deltaY: number, gameId: bigint) => {
         console.log("moveBy");
     }
 
     const startMatch = async (
-        gameId: number,
+        gameId: bigint,
         playersSpawned: number,
         startTime: number
       ) => {
@@ -153,31 +150,31 @@ export function createSystemCalls(
     //     }
     // };
 
-    const sendActionPoint = async (entity: Entity, gameId: number | null) => {
+    const sendActionPoint = async (entity: Entity, gameId: bigint | null) => {
         console.log("sendActionPoint");
     };
 
-    const attack = async (entity: Entity, gameId: number | null) => {
+    const attack = async (entity: Entity, gameId: bigint | null) => {
         console.log("attack");
     }
 
-    const increaseRange = async (gameId: number | null) => {
+    const increaseRange = async (gameId: bigint | null) => {
         console.log("increaseRange");
     }
 
-    const claimActionPoint = async (gameId: number | null) => {
+    const claimActionPoint = async (gameId: bigint | null) => {
         console.log("claimActionPoint");
     }
 
-    const vote = async (entity: Entity, gameId: number | null) => {
+    const vote = async (entity: Entity, gameId: bigint | null) => {
         console.log("vote");
     }
 
-    const claimVotingPoint = async (gameId: number | null) => {
+    const claimVotingPoint = async (gameId: bigint | null) => {
         console.log("claimVotingPoint");
     }
 
-    const leaveGame = async (gameId: number | null) => {
+    const leaveGame = async (gameId: bigint | null) => {
         console.log("leaveGame");
     }
 

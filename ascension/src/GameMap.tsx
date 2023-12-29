@@ -19,12 +19,12 @@ type Props = {
     y: number;
     emoji: string;
   }[];
-  players: {
+  players: ({
+    entity: Entity;
     x: number;
     y: number;
     emoji: string;
-    entity: Entity;
-  }[];
+  } | null) [];
   // onRightClickPlayer: (
   //   event: React.MouseEvent,
   //   playerEntity: Entity | null
@@ -76,7 +76,7 @@ export const GameMap = ({
   const rows = new Array(width).fill(0).map((_, i) => i);
   const columns = new Array(height).fill(0).map((_, i) => i);
   const shipRange = useComponentValue(Range, playerEntity)?.value;
-  let playerPosition = players?.find((p) => p.entity === playerEntity);
+  let playerPosition = players?.find((p) => p?.entity === playerEntity);
 
   return (
     <div className="inline-grid p-2 bg-slate-900 relative overflow-hidden">
@@ -104,7 +104,7 @@ export const GameMap = ({
             totalDistance !== 0;
 
           const playersHere = (players || []).filter(
-            (p) => p.x === x && p.y === y
+            (p) => p?.x === x && p.y === y
           );
           const hasPlayers = playersHere.length > 0;
 
@@ -133,7 +133,7 @@ export const GameMap = ({
               <div className="flex flex-wrap gap-1 items-center justify-center relative">
                 <div className="relative">
                   {playersHere?.map((p) => (
-                    <span key={p.entity}>{p.emoji}</span>
+                    <span key={p?.entity}>{p?.emoji}</span>
                   ))}
                 </div>
               </div>

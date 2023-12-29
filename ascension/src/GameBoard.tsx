@@ -87,24 +87,20 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
     HasValue(Alive, { value: false }),
   ]);
 
-  console.log('players: ', players);
-
   const mappedPlayers = players.map((entity) => {
-    console.log('entity: ', entity);
-    const playerId = getComponentValue(Player, entity)?.player;
-    const position = getComponentValue(Position, entity);
-    console.log('position: ', position);
-    if (!position) return null;
-    
+    const position = getComponentValue(Position, entity);    
     let emoji = !deadPlayers.includes(entity) ? (entity === playerEntity ? "🚀" : "🛸") : "💀";
-    console.log ('emoji: ', emoji);
-    return {
-      entity,
-      x: position.vec.x,
-      y: position.vec.y,
-      emoji: emoji,
-    };
-  }).filter(player => player !== null);
+    if (position) {
+      return {
+        entity,
+        x: position.vec.x,
+        y: position.vec.y,
+        emoji: emoji,
+      };
+    } else { 
+      return null
+    }
+  })
 
   const closeModal = () => {
     setShowUsernameInput(false);

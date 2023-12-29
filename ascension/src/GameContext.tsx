@@ -4,11 +4,11 @@ import { Entity } from "@latticexyz/recs";
 
 type GameContextProps = {
   message: string;
-  gameId: number | null;
+  gameId: bigint | null;
   gameIsWon: boolean;
   showGameBoard: boolean;
   highlightedPlayer: Entity | null;
-  setGameId: React.Dispatch<React.SetStateAction<number | null>>;
+  setGameId: React.Dispatch<React.SetStateAction<bigint | null>>;
   setGameIsWon: React.Dispatch<React.SetStateAction<boolean>>;
   setShowGameBoard: React.Dispatch<React.SetStateAction<boolean>>;
   setHighlightedPlayer: React.Dispatch<React.SetStateAction<Entity | null>>;
@@ -28,7 +28,7 @@ export const useGameContext = () => {
 
 export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   const [message, setMessage] = useState<string>("");
-  const [gameId, setGameId] = useState<number | null>(null);
+  const [gameId, setGameId] = useState<bigint | null>(null);
   const [gameIsWon, setGameIsWon] = useState<boolean>(false);
   const [showGameBoard, setShowGameBoard] = useState(false);
   const [highlightedPlayer, setHighlightedPlayer] = useState<Entity | null>(

@@ -4,8 +4,7 @@ use dojo_examples::models::{Direction, GameSession, PieceType, Square, Vec2, Hea
 #[starknet::interface]
 trait IActions<TContractState> {
     fn spawn_game(self: @TContractState, game_id: felt252, start_time: felt252);
-    fn spawn(self: @TContractState);
-    // fn spawn(self: @TContractState, start_time: felt252, username: felt252, game_id: felt252);
+    fn spawn(self: @TContractState, start_time: felt252, username: felt252, game_id: felt252);
 }
 
 // dojo decorator
@@ -84,11 +83,8 @@ mod actions {
             }
         }
 
-        // fn spawn(self: @ContractState, start_time: felt252, username: felt252, game_id: felt252) {
-        fn spawn(self: @ContractState) {
+        fn spawn(self: @ContractState, start_time: felt252, username: felt252, game_id: felt252) {
 
-            let game_id: felt252 = 123456789;
-            let start_time: felt252 = 1699744590;
             let world = self.world_dispatcher.read();
             
             // Available spawn coordinates
@@ -103,33 +99,14 @@ mod actions {
             spawn_locations.append(Vec2 { x: 10, y: 10 });
 
             // check whether there is already a game session with the given gameId, if not, create one
-            // let game_session = get!(world, game_id, GameSession);
-            // if game_session.id == 0 {
-            //     'game session not found'.print();
-            //     self.spawn_game(game_id, start_time);
-            // }
-            self.spawn_game(game_id, start_time);
-
-            // Access the world dispatcher for reading.
-            // emit!(world, Log { message: 'spawn called' });
+            let game_session = get!(world, game_id, GameSession);
+            if game_session.startTime == 0 {
+                'game session not found'.print();
+                self.spawn_game(game_id, start_time);
+            }
 
             // Get the address of the current caller, possibly the player's address.
-            let player = get_caller_address();
-
-            // let playerfelt: felt252 = player.into();
-            // emit!(world, Log { message: playerfelt });
-           
-
-            // set!(
-            //     world,
-            //     (
-            //         Player { player, gameId: 123456789 },
-            //         // Position { player, game_id, vec: Vec2 { x: 10, y: 10 } },
-            //         Position { player, vec: Vec2 { x: 0, y: 0 } },
-            //         // Square { game_id: game_id, vec: Vec2 { x: 0, y: 0 }, piece: PieceType::Player },
-            //     )
-            // );
-
+            let player = get_caller_address();          
             let mut i: usize = 0;
             loop {
                 if i == spawn_locations.len() {
@@ -144,7 +121,6 @@ mod actions {
                         (   
                             Player { player, gameId: 123456789 },
                             Position { player, game_id, vec: square.vec },
-                            // Position { player, game_id, vec: Vec2 { x: 0, y: 0 } },
                             Square { game_id: game_id, vec: square.vec, piece: PieceType::Player },
                         )
                     );

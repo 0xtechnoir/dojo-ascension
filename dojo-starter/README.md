@@ -1,44 +1,35 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset=".github/mark-dark.svg">
-  <img alt="Dojo logo" align="right" width="120" src=".github/mark-light.svg">
-</picture>
+# Ascension
 
-<a href="https://twitter.com/dojostarknet">
-<img src="https://img.shields.io/twitter/follow/dojostarknet?style=social"/>
-</a>
-<a href="https://github.com/dojoengine/dojo">
-<img src="https://img.shields.io/github/stars/dojoengine/dojo?style=social"/>
-</a>
+## Background
+blah blah
 
-[![discord](https://img.shields.io/badge/join-dojo-green?logo=discord&logoColor=white)](https://discord.gg/PwDa2mKhR4)
-[![Telegram Chat][tg-badge]][tg-url]
+### Deploying katana and torii with Slot
+```
+curl -L https://slot.cartridge.sh | bash
+slotup
+slot auth login
+# For old auth credentials debug:
+rm ~/Library/Application\ Support/slot/credentials.json
 
-[tg-badge]: https://img.shields.io/endpoint?color=neon&logo=telegram&label=chat&style=flat-square&url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Fdojoengine
-[tg-url]: https://t.me/dojoengine
+# Create and manage deployments
+slot deployments create ascension-dojo katana
 
-# Dojo Starter: Official Guide
+# Retrieve and save credentials
+slot deployments logs ascension-dojo katana -f
 
-The official Dojo Starter guide, the quickest and most streamlined way to get your Dojo Autonomous World up and running. This guide will assist you with the initial setup, from cloning the repository to deploying your world.
+# switch environments in Scarb.toml
+# update urls in .env.production
+# populate account_address and private_key (from deployment logs above)
 
-Read the full tutorial [here](https://book.dojoengine.org/cairo/hello-dojo.html)
+# Build and migrate releases
+sozo --release build
+sozo --release migrate
 
----
+# Set up torii and connect to the world
+slot deployments create ascension-dojo torii --rpc https://api.cartridge.gg/x/ascension-dojo/katana --world 0x33ac2f528bb97cc7b79148fd1756dc368be0e95d391d8c6d6473ecb60b4560e --start-block 1
 
-## Contribution
+# Update authentication for the release
+./scripts/default_auth.sh release
+```
+### Deploying client with Vercel
 
-This starter project is a constant work in progress and contributions are greatly appreciated!
-
-1. **Report a Bug**
-
-    - If you think you have encountered a bug, and we should know about it, feel free to report it [here](https://github.com/dojoengine/dojo-starter/issues) and we will take care of it.
-
-2. **Request a Feature**
-
-    - You can also request for a feature [here](https://github.com/dojoengine/dojo-starter/issues), and if it's viable, it will be picked for development.
-
-3. **Create a Pull Request**
-    - It can't get better then this, your pull request will be appreciated by the community.
-
-For any other questions, feel free to reach out to us [here](https://dojoengine.org/contact).
-
-Happy coding!

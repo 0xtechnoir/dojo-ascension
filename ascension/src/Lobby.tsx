@@ -8,7 +8,7 @@ import { useDojo } from "./DojoContext";
 interface LobbyProps {
   setShowGameBoard: React.Dispatch<React.SetStateAction<boolean>>;
   showGameBoard: boolean;
-  currentGameID: number | undefined;
+  currentGameID: bigint | undefined;
 }
 
 const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
@@ -24,19 +24,19 @@ const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
     },
   } = useDojo();
 
-  const [inputGameID, setInputGameID] = useState<number | null>(null);
+  const [inputGameID, setInputGameID] = useState<bigint | null>(null);
 
   const allGameSessions = useEntityQuery([Has(GameSession)]);
   const allGameIds = allGameSessions.map((entity) => {
     const rec = getComponentValue(GameSession, entity);
-    return Number(rec?.gameId);
+    return rec?.gameId;
   });
 
   const handleCreateGame = () => {
     // generate a unique 9-digit gameId
-    let gameId: number;
+    let gameId: bigint;
     while (true) {
-      gameId = Math.floor(100000000 + Math.random() * 900000000);
+      gameId = BigInt(Math.floor(100000000 + Math.random() * 900000000));
       if (!allGameIds.includes(gameId)) {
         break;
       }
@@ -45,13 +45,13 @@ const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
     setShowGameBoard(true);
   };
   const handleJoinGame = (
-    eventOrGameID?: React.MouseEvent<HTMLButtonElement, MouseEvent> | number
+    eventOrGameID?: React.MouseEvent<HTMLButtonElement, MouseEvent> | bigint
   ) => {
-    let gameIDToJoin: number | null;
-    if (typeof eventOrGameID === "number") {
-      gameIDToJoin = eventOrGameID;
+    let gameIDToJoin: bigint | null;
+    if (typeof eventOrGameID === "bigint") {
+      gameIDToJoin = BigInt(eventOrGameID);
     } else {
-      gameIDToJoin = inputGameID;
+      gameIDToJoin = inputGameID ? BigInt(inputGameID) : null;
     }
 
     if (gameIDToJoin) {
@@ -101,7 +101,7 @@ const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
                 className="text-black mr-4 border border-gray-300 rounded-md h-10 px-3"
                 placeholder="Enter Game ID"
                 value={inputGameID ? inputGameID.toString() : ""} // TODO: must be a better way to do this
-                onChange={(e) => setInputGameID(Number(e.target.value))}
+                onChange={(e) => setInputGameID(BigInt(e.target.value))}
               />
             </div>
           </>
