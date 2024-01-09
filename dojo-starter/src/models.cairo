@@ -52,6 +52,13 @@ struct Health {
 }
 
 #[derive(Model, Drop, Serde)]
+struct InGame {
+    #[key]
+    player: ContractAddress,
+    gameId: felt252,
+}
+
+#[derive(Model, Drop, Serde)]
 struct ActionPoint {
     #[key]
     player: ContractAddress,

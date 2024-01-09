@@ -5,6 +5,7 @@ use dojo_examples::models::{Direction, GameSession, PieceType, Square, Vec2, Hea
 trait IActions<TContractState> {
     fn spawn_game(self: @TContractState, game_id: felt252, start_time: felt252);
     fn spawn(self: @TContractState, start_time: felt252, username: felt252, game_id: felt252);
+    fn startMatch(self: @TContractState, game_id: felt252, playersSpawned: u8, startTime: felt252);
 }
 
 // dojo decorator
@@ -13,7 +14,7 @@ mod actions {
     use starknet::{ContractAddress, get_caller_address};
     use dojo_examples::models::{
         Position, Direction, Vec2, GameSession, PieceType, Square, Health, Range,
-        ActionPoint, Alive, Player
+        ActionPoint, Alive, Player, InGame
     };
     use dojo_examples::utils::next_position;
     use super::IActions;
@@ -23,7 +24,7 @@ mod actions {
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
-        Moved: Moved,
+        GameStarted: GameStarted,
         Log: Log,
     }
 
@@ -35,9 +36,9 @@ mod actions {
 
     // declaring custom event struct
     #[derive(Drop, starknet::Event)]
-    struct Moved {
-        player: ContractAddress,
-        direction: Direction
+    struct GameStarted {
+        startTime: felt252,
+        gameId: felt252,
     }
 
     // impl: implement functions specified in trait
@@ -119,52 +120,40 @@ mod actions {
                     set!(
                         world,
                         (   
-                            Player { player, gameId: 123456789 },
+                            Player { player, gameId: game_id },
+                            InGame { player, gameId: game_id },
                             Position { player, game_id, vec: square.vec },
                             Square { game_id: game_id, vec: square.vec, piece: PieceType::Player },
+                            Health { player, value: 3 },
+                            Range { player, value: 2 },
+                            Alive { player, value: true },
+                            ActionPoint { player, value: 3 },
                         )
                     );
                     break;
                 }
                 i += 1;
             };
-
-            // Update the world state with the new data.
-            set!(
-                world,
-                (
-                    Health { player, value: 3 },
-                    Range { player, value: 2 },
-                    Alive { player, value: true },
-                    ActionPoint { player, value: 3 },
-                )
-            );
         }
 
-        // // ContractState is defined by system decorator expansion
-        // fn spawn(self: @ContractState) {
-        //     // Access the world dispatcher for reading.
-        //     let world = self.world_dispatcher.read();
+        fn startMatch(self: @ContractState, game_id: felt252, playersSpawned: u8, startTime: felt252) {
+            let world = self.world_dispatcher.read();
+            assert(playersSpawned > 1, '2 or more players required');
+            assert(get!(world, game_id, GameSession).isLive != true, 'Match already started');
+            set!(world, GameSession { id: game_id, isLive: true, startTime: startTime, gameId: game_id, players: playersSpawned, isWon: false });
+            emit!(world, GameStarted { startTime: startTime, gameId: game_id });
+        }
 
-        //     // Get the address of the current caller, possibly the player's address.
-        //     let player = get_caller_address();
+        // function startMatch(uint32 gameId, uint32 playersSpawned, uint256 startTime) public {
+        //     require(playersSpawned > 1, "Not enough players to start match. Minimum 2 players required");
+        //     require(!GameSession.getIsLive(gameId), "Match has already started");
+        //     GameSession.setIsLive(gameId, true);
+        //     GameSession.setStartTime(gameId, startTime);
 
-        //     // Retrieve the player's current position from the world.
-        //     let position = get!(world, player, (Position));
-
-        //     // Retrieve the player's move data, e.g., how many moves they have left.
-        //     let moves = get!(world, player, (Moves));
-
-        //     // Update the world state with the new data.
-        //     // 1. Set players moves to 10
-        //     // 2. Move the player's position 100 units in both the x and y direction.
-        //     set!(
-        //         world,
-        //         (
-        //             Moves { player, remaining: 100, last_direction: Direction::None },
-        //             Position { player, vec: Vec2 { x: 10, y: 10 } },
-        //         )
-        //     );
+        //     GameStarted.set(gameId, GameStartedData({
+        //     timestamp: startTime,
+        //     gameId: gameId
+        //     }));
         // }
 
         // // Implementation of the move function for the ContractState struct.

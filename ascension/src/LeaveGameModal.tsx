@@ -8,19 +8,17 @@ type LeaveGameModalProps = {
   showLeaveGameModal: boolean;
   setShowLeaveGameModal: React.Dispatch<React.SetStateAction<boolean>>;
   setShowLeaveGameButton: React.Dispatch<React.SetStateAction<boolean>>;
-  setShowGameBoard: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const LeaveGameModal: React.FC<LeaveGameModalProps> = ({
   showLeaveGameModal: showLeaveGameModal,
   setShowLeaveGameModal: setShowLeaveGameModal,
   setShowLeaveGameButton: setShowLeaveGameButton,
-  setShowGameBoard: setShowGameBoard,
 }) => {
   const { gameId } = useGameContext();
 
   // Contexts
-  const { displayMessage } = useGameContext();
+  const { displayMessage, setShowGameBoard } = useGameContext();
 
   const {
     setup: {

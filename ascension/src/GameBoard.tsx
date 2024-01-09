@@ -42,6 +42,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
 
   const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
 
+
   // const closeContextMenu = () => {
   //   setContextMenu({ visible: false, x: 0, y: 0, playerEntity: null });
   // };
@@ -88,7 +89,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
   ]);
 
   const mappedPlayers = players.map((entity) => {
-    const position = getComponentValue(Position, entity);    
+    const position = getComponentValue(Position, entity);
     let emoji = !deadPlayers.includes(entity) ? (entity === playerEntity ? "🚀" : "🛸") : "💀";
     if (position) {
       return {

@@ -69,6 +69,19 @@ export function defineContractComponents(world: World) {
 	      }
 	    );
 	  })(),
+	  InGame: (() => {
+	    return defineComponent(
+	      world,
+	      { player: RecsType.BigInt, gameId: RecsType.BigInt },
+	      {
+	        metadata: {
+	          name: "InGame",
+	          types: ["contractaddress","felt252"],
+	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
 	  LastActionPointClaim: (() => {
 	    return defineComponent(
 	      world,

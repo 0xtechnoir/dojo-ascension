@@ -1,5 +1,5 @@
 import { useComponentValue, useEntityQuery } from "@dojoengine/react";
-import { Has, HasValue, Entity, getComponentValue } from "@dojoengine/recs";
+import { Has, HasValue, Entity, getComponentValue, getComponentValueStrict, ComponentValue } from "@dojoengine/recs";
 import { useEffect, useState } from "react";
 import "./App.css";
 import { useDojo } from "./DojoContext";
@@ -16,11 +16,12 @@ import RulesModal from "./RulesModal";
 function App() {
     const {
         setup: {
-            components: { Moves, Position, Player, GameSession },
+            components: { Moves, Position, Player, GameSession, InGame },
             systemCalls: { startMatch },
         },
         account: {
             account,
+            create,
             isDeploying,
             clear,
             copyToClipboard,
@@ -31,6 +32,7 @@ function App() {
     const {
         displayMessage,
         gameId,
+        playerInGameId,
         showGameBoard,
         setShowGameBoard,
         setGameIsWon,
@@ -42,33 +44,88 @@ function App() {
     const [showLeaveGameButton, setShowLeaveGameButton] = useState(true);
     const [showLeaveGameModal, setShowLeaveGameModal] = useState(false);
     const [showRulesModal, setShowRulesModal] = useState(false);
+    const [currentGameID, setCurrentGameID] = useState<number | undefined>(undefined);
+    const [playerEntity, setPlayerEntity] = useState<ComponentValue | null>(null); 
+
 
     const [clipboardStatus, setClipboardStatus] = useState({
         message: "",
         isError: false,
     });
 
-    // entity id we are syncing
-    const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
     const gameSessions = useEntityQuery([Has(GameSession)]);
-    const currentGameID = useComponentValue(Player, entityId)?.gameId;
-
+    // entity id we are syncing
+    // const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
+    // console.log("entityId: ", entityId);
+    // const fetchedPlayerEntity = getComponentValue(Player, entityId);
+    // console.log("fetchedPlayerEntity: ", fetchedPlayerEntity);
+    // // const currentGameID = useComponentValue(InGame, entityId)?.gameId;
+    
+    // useEffect(() => {
+    //   if (fetchedPlayerEntity) {
+    //     setCurrentGameID(Number(fetchedPlayerEntity.gameId));
+    //     console.log("currentGameID: ", currentGameID);
+    //   }
+    //   // Other dependencies might be necessary depending on when you want this effect to run
+    // }, [fetchedPlayerEntity]);
+    
+    
+// 
     // get current component values
     // const position = useComponentValue(Position, entityId);
     // console.log("+++position+++: ", position);
     // const moves = useComponentValue(Moves, entityId);
+   
+    // const newGameId = Number(useComponentValue(InGame, entityId)?.gameId);
 
     useEffect(() => {
-        // Hide spawn button if player is already spawned
-        const playerEntityExists = getComponentValue(Player, entityId) || false;
-        if (playerEntityExists && currentGameID) {
-          setShowSpawnButton(false);
-          setShowLeaveGameButton(true);
-        } else {
-          setShowSpawnButton(true);
-          setShowLeaveGameButton(false);
-        }
-      });
+      console.log("playerInGameId: ", playerInGameId);
+      // Use the fetched value directly in this effect
+      if (playerInGameId) {
+        setShowSpawnButton(false);
+        setShowLeaveGameButton(true);
+      } else {
+        setShowSpawnButton(true);
+        setShowLeaveGameButton(false);
+      }
+      // Only after all these operations, update the playerEntity state
+      // setPlayerEntity(fetchedPlayerEntity);
+    }, [playerInGameId]); // Make sure entityId is the dependency if it affects fetchedPlayerEntity
+
+    // useEffect(() => {
+    //   console.log("useEffect called ==========");
+    //   const fetchedPlayerEntity = getComponentValue(Player, entityId) || null;
+    //   console.log("fetchedPlayerEntity: ", fetchedPlayerEntity);
+    //   setPlayerEntity(fetchedPlayerEntity);
+    //   console.log("playerEntity: ", playerEntity);
+    //   if (playerEntity) {
+    //     console.log("useEffect branch 1 taken")
+    //     console.log("playerEntity.gameId: ", playerEntity.gameId);
+    //     setCurrentGameID(Number(playerEntity.gameId));
+    //     setShowSpawnButton(false);
+    //     setShowLeaveGameButton(true);
+    //   } else {
+    //     console.log("useEffect branch 2 taken")
+    //     setShowSpawnButton(true);
+    //     setShowLeaveGameButton(false);
+    //   }
+    // }, []);
+    //
+    // useEffect(() => {
+    //     // Hide spawn button if player is already spawned
+    //     // console.log("useEffect currentGameID: ", currentGameID)
+    //     // console.log("useEffect entityId: ", entityId)
+    //     console.log("playerEntity: ", playerEntity);
+    //     if (playerEntity) {
+    //       console.log("1")
+    //       setCurrentGameID(Number(playerEntity.gameId));
+    //       setShowSpawnButton(false);
+    //       setShowLeaveGameButton(true);
+    //     } else {
+    //       setShowSpawnButton(true);
+    //       setShowLeaveGameButton(false);
+    //     }
+    //   });
     // console.log("currentGameID: ", currentGameID);
     const allPlayers = useEntityQuery([
         Has(Player),
@@ -93,9 +150,9 @@ function App() {
           const gameSession = gameSessions[i];
           const rec = getComponentValue(GameSession, gameSession);
           // console.dir(rec);
-          if (rec && rec?.gameId === gameId) {
+          if (rec && Number(rec?.gameId) === gameId) {
             gameIsLive = rec.isLive;
-            setGameIsWon(rec.isWon);
+            // setGameIsWon(rec.isWon);
           }
         }
       }
@@ -107,22 +164,7 @@ function App() {
     const handleLeaveGameClick = () => {
         setShowLeaveGameModal(true);
       };
-
-    // const handleRestoreBurners = async () => {
-    //     try {
-    //         await applyFromClipboard();
-    //         setClipboardStatus({
-    //             message: "Burners restored successfully!",
-    //             isError: false,
-    //         });
-    //     } catch (error) {
-    //         setClipboardStatus({
-    //             message: `Failed to restore burners from clipboard`,
-    //             isError: true,
-    //         });
-    //     }
-    // };
-
+//
     useEffect(() => {
         if (clipboardStatus.message) {
             const timer = setTimeout(() => {
@@ -141,7 +183,7 @@ function App() {
       }
       try {
           console.log("start match")
-        await startMatch(gameId, playersSpawned, startTime);
+        await startMatch(account, BigInt(gameId), playersSpawned, startTime);
       } catch (error) {
         if (typeof error === "object" && error !== null) {
           const message = (error as ErrorWithShortMessage).cause.data.args[0];
@@ -155,9 +197,8 @@ function App() {
           <div className="flex justify-center">
             {!showGameBoard ? (
               <Lobby
-                setShowGameBoard={setShowGameBoard}
                 showGameBoard={showGameBoard}
-                currentGameID={currentGameID}
+                currentGameID={playerInGameId}
               />
             ) 
             : (
@@ -200,18 +241,16 @@ function App() {
                     Rules
                   </button>
                   <br />
-                  {currentGameID ? (
-                    <>
+                  {playerInGameId ? (
                       <p>
-                        Game ID:{" "}
-                        <strong className="text-orange-500 bg-gray-800 p-1 rounded-md">
-                          {String(currentGameID)}
-                        </strong>
-                        (Share this with other players so they can join your game)
-                      </p>
-                    </>
-                  ) : (
-                    <p>Spawn to get a sharable game ID</p>
+                      Game ID:{" "}
+                      <strong className="text-orange-500 bg-gray-800 p-1 rounded-md">
+                        {String(playerInGameId)}
+                      </strong>
+                      (Share this with other players so they can join your game)
+                    </p>
+                    ) : (
+                      <p>Spawn to get a sharable game ID</p>
                   )}
                 </div>
                 <div className="flex justify-center">
@@ -235,7 +274,6 @@ function App() {
                   showLeaveGameModal={showLeaveGameModal}
                   setShowLeaveGameModal={setShowLeaveGameModal}
                   setShowLeaveGameButton={setShowLeaveGameButton}
-                  setShowGameBoard={setShowGameBoard}
                 />
                 <RulesModal
                   showRulesModal={showRulesModal}

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-// import Modal from "@material-ui/core/Modal";
+import { Entity, getComponentValue } from "@dojoengine/recs";
 import { useGameContext } from "./GameContext";
 import { ErrorWithShortMessage } from "./CustomTypes";
 import Box from '@mui/material/Box';
@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
 import Button from '@mui/material/Button';
 import { useDojo } from "./DojoContext";
+import { getEntityIdFromKeys } from "@dojoengine/utils";
 
 type SpawnModalProps = {
   showSpawnModal: boolean;
@@ -24,11 +25,12 @@ const SpawnModal: React.FC<SpawnModalProps> = ({
   const [enteredUsername, setEnteredUsername] = useState("");
 
   // Contexts
-  const { displayMessage, gameId } = useGameContext();
+  const { displayMessage, gameId, setPlayerInGameId } = useGameContext();
 
   const {
     setup: {
-        systemCalls: { spawn },
+      components: { Player },
+      systemCalls: { spawn },
     },
     account: { 
       account, 
@@ -62,8 +64,13 @@ const SpawnModal: React.FC<SpawnModalProps> = ({
       if (!gameId) {
         throw new Error("No game ID found");
       }
-      await spawn(account, sanitizedUsername, gameId);
+      await spawn(account, sanitizedUsername, BigInt(gameId));
       setShowSpawnButton(false);
+      const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
+      console.log("entityId: ", entityId);
+      const id = getComponentValue(Player, entityId)?.gameId;
+      setPlayerInGameId(Number(id));
+
     } catch (error) {
       console.log("handleModalSubmit error: ", error);
       if (typeof error === "object" && error !== null) {

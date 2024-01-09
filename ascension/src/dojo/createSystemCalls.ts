@@ -40,15 +40,11 @@ export function createSystemCalls(
     // }
 
     const spawn = async (signer: Account, username: string, gameId: bigint) => {
-        // console.log("signer", signer);
-        // console.log('username', username);
-        // console.log('gameId', gameId);
         const encodedUsername: string = shortString.encodeShortString(username);
         const timestamp = Date.now();
         const entityId = getEntityIdFromKeys([
             BigInt(signer.address),
         ]) as Entity;
-
         const playerId = uuid();
         Player.addOverride(playerId, {
         entity: entityId,
@@ -90,11 +86,31 @@ export function createSystemCalls(
     }
 
     const startMatch = async (
+        signer: Account,
         gameId: bigint,
         playersSpawned: number,
         startTime: number
       ) => {
         console.log("startMatch called");
+        try {
+            const { transaction_hash } = await execute(
+                signer,
+                "actions",
+                "startMatch",
+                [gameId, playersSpawned, startTime]
+            );
+
+            setComponentsFromEvents(
+                contractComponents,
+                getEvents(
+                    await signer.waitForTransaction(transaction_hash, {
+                        retryInterval: 100,
+                    })
+                )
+            );
+        } catch (e) {
+            console.log(e);
+        }
       };
 
     // const move = async (signer: Account, direction: Direction) => {
@@ -150,31 +166,31 @@ export function createSystemCalls(
     //     }
     // };
 
-    const sendActionPoint = async (entity: Entity, gameId: bigint | null) => {
+    const sendActionPoint = async (entity: Entity, gameId: number | null) => {
         console.log("sendActionPoint");
     };
 
-    const attack = async (entity: Entity, gameId: bigint | null) => {
+    const attack = async (entity: Entity, gameId: number | null) => {
         console.log("attack");
     }
 
-    const increaseRange = async (gameId: bigint | null) => {
+    const increaseRange = async (gameId: number | null) => {
         console.log("increaseRange");
     }
 
-    const claimActionPoint = async (gameId: bigint | null) => {
+    const claimActionPoint = async (gameId: number | null) => {
         console.log("claimActionPoint");
     }
 
-    const vote = async (entity: Entity, gameId: bigint | null) => {
+    const vote = async (entity: Entity, gameId: number | null) => {
         console.log("vote");
     }
 
-    const claimVotingPoint = async (gameId: bigint | null) => {
+    const claimVotingPoint = async (gameId: number | null) => {
         console.log("claimVotingPoint");
     }
 
-    const leaveGame = async (gameId: bigint | null) => {
+    const leaveGame = async (gameId: number | null) => {
         console.log("leaveGame");
     }
 
