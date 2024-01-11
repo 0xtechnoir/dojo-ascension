@@ -1,19 +1,22 @@
-// import { getComponentValue, HasValue } from "@dojoengine/recs";
-// import { useEntityQuery } from "@dojoengine/react";
-// import { useDojo } from "./DojoContext";
-// import { LogMessage } from "./CustomTypes";
-// import { formatDate } from "./utils";
-// import { useGameContext } from "./GameContext";
-// import { useEffect, useState } from "react";
+import { GraphQLClient, gql } from "graphql-request";
+import { Client, createClient } from "graphql-ws";
+import { getComponentValue, HasValue } from "@dojoengine/recs";
+import { useEntityQuery } from "@dojoengine/react";
+import { useDojo } from "./DojoContext";
+import { LogMessage } from "./CustomTypes";
+import { formatDate } from "./utils";
+import { useGameContext } from "./GameContext";
+import { useEffect, useState } from "react";
+import { World__Subscription } from "./generated/graphql";
 
-// const ActivityLogComponent = () => {
+const ActivityLogComponent = () => {
 //   const { gameId, displayMessage, setHighlightedPlayer } = useGameContext();
 //   const [mappedLogs, setMappedLogs] = useState<LogMessage[]>([]);
 
 //   const {
 //     setup: {
 //         components: { 
-//           MoveExecuted,
+//           PlayerSpawned,
 //           AttackExecuted,
 //           SendActionPointExecuted,
 //           RangeIncreaseExecuted,
@@ -300,24 +303,24 @@
 //     playerWon,
 //   ]);
 
-//   return (
-//     <div className="h-full items-start p-3 rounded-md">
-//       <h1 className="text-2xl font-bold text-white mb-4">Ships Log:</h1>
-//       <ul className="list-decimal text-white">
-//         {mappedLogs
-//           .sort((a, b) => b.timestamp - a.timestamp)
-//           .map((logObj) => (
-//             <ul key={crypto.randomUUID()} className="mb-1">
-//               <span className="text-gray-400 text-sm">{`${formatDate(
-//                 logObj.timestamp
-//               )}`}</span>
-//               <span className="text-orange-400 text-sm"> : </span>
-//               <span className="text-white text-sm">{logObj.message}</span>
-//             </ul>
-//           ))}
-//       </ul>
-//     </div>
-//   );
-// };
+  return (
+    <div className="h-full items-start p-3 rounded-md">
+      <h1 className="text-2xl font-bold text-white mb-4">Ships Log:</h1>
+      {/* <ul className="list-decimal text-white">
+        {mappedLogs
+          .sort((a, b) => b.timestamp - a.timestamp)
+          .map((logObj) => (
+            <ul key={crypto.randomUUID()} className="mb-1">
+              <span className="text-gray-400 text-sm">{`${formatDate(
+                logObj.timestamp
+              )}`}</span>
+              <span className="text-orange-400 text-sm"> : </span>
+              <span className="text-white text-sm">{logObj.message}</span>
+            </ul>
+          ))}
+      </ul> */}
+    </div>
+  );
+};
 
-// export default ActivityLogComponent;
+export default ActivityLogComponent;

@@ -2,10 +2,7 @@ import React, { useState } from "react";
 import { Entity, getComponentValue } from "@dojoengine/recs";
 import { useGameContext } from "./GameContext";
 import { ErrorWithShortMessage } from "./CustomTypes";
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import Modal from '@mui/material/Modal';
-import Button from '@mui/material/Button';
 import { useDojo } from "./DojoContext";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 
@@ -93,21 +90,6 @@ const SpawnModal: React.FC<SpawnModalProps> = ({
   };
 
   return (
-    // <Modal
-    //   open={showSpawnModal}
-    //   onClose={handleCloseSpawnModal}
-    //   aria-labelledby="modal-modal-title"
-    //   aria-describedby="modal-modal-description"
-    // >
-    //   <Box className="bg-white rounded-lg p-8 shadow-lg w-96 text-black relative">
-    //     <Typography id="modal-modal-title" variant="h6" component="h2">
-    //       Text in a modal
-    //     </Typography>
-    //     <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-    //       Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-    //     </Typography>
-    //   </Box>
-    // </Modal>
     <Modal
       onClose={handleCloseSpawnModal}
       open={showSpawnModal}

@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useGameContext } from "./GameContext";
-import { useEntityQuery, useComponentValue } from "@dojoengine/react";
+import { useEntityQuery } from "@dojoengine/react";
 import { getComponentValue, Has, Entity } from "@dojoengine/recs";
-// import { useMUD } from "./MUDContext";
 import { useDojo } from "./DojoContext";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 
@@ -12,7 +11,7 @@ interface LobbyProps {
 }
 
 const Lobby: React.FC<LobbyProps> = ({ currentGameID }) => {
-  const { setGameId, displayMessage, setShowGameBoard } = useGameContext();
+  const { setGameId, displayMessage, setShowGameBoard, setPlayerInGameId, playerInGameId } = useGameContext();
   const [clipboardStatus, setClipboardStatus] = useState({
     message: "",
     isError: false,
@@ -34,8 +33,14 @@ const Lobby: React.FC<LobbyProps> = ({ currentGameID }) => {
     },
   } = useDojo();
 
-  const [inputGameID, setInputGameID] = useState<number | null>(null);
 
+  useEffect(() => {
+    const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
+    const id = getComponentValue(Player, entityId)?.gameId;
+    setPlayerInGameId(Number(id));
+  })
+
+  const [inputGameID, setInputGameID] = useState<number | null>(null);
   const allGameSessions = useEntityQuery([Has(GameSession)]);
   const allGameIds = allGameSessions.map((entity) => {
     const rec = getComponentValue(GameSession, entity);
@@ -146,13 +151,13 @@ const Lobby: React.FC<LobbyProps> = ({ currentGameID }) => {
               </div>
             </div>
             <div>
-              {currentGameID ? (
+              {playerInGameId ? (
                 <>
-                  <p>{`You are already in game: ${currentGameID}`}</p>
+                  <p>{`You are already in game: ${playerInGameId}`}</p>
                   <br />
                   <button
                     className="btn-sci-fi"
-                    onClick={() => handleJoinGame(currentGameID)}
+                    onClick={() => handleJoinGame(playerInGameId)}
                   >
                     Join This Game
                   </button>

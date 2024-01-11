@@ -20,12 +20,13 @@ mod actions {
     use super::IActions;
     use debug::PrintTrait;
 
-    // declaring custom event struct
+    // declaring custom event enum
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
         GameStarted: GameStarted,
         Log: Log,
+        PlayerSpawned: PlayerSpawned,
     }
 
     // declaring custom event struct
@@ -39,6 +40,15 @@ mod actions {
     struct GameStarted {
         startTime: felt252,
         gameId: felt252,
+    }
+
+    // declaring custom event struct
+    #[derive(Drop, starknet::Event)]
+    struct PlayerSpawned {
+        timestamp: felt252,
+        position: Vec2,
+        gameId: felt252,
+        player: felt252,
     }
 
     // impl: implement functions specified in trait
@@ -130,6 +140,7 @@ mod actions {
                             ActionPoint { player, value: 3 },
                         )
                     );
+                    emit!(world, PlayerSpawned { timestamp: start_time, position: square.vec, gameId: game_id, player: 'test' });
                     break;
                 }
                 i += 1;

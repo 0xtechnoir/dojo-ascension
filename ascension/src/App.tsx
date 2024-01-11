@@ -1,12 +1,12 @@
-import { useComponentValue, useEntityQuery } from "@dojoengine/react";
-import { Has, HasValue, Entity, getComponentValue, getComponentValueStrict, ComponentValue } from "@dojoengine/recs";
+import { useEntityQuery } from "@dojoengine/react";
+import { Has, getComponentValue, ComponentValue } from "@dojoengine/recs";
 import { useEffect, useState } from "react";
 import "./App.css";
 import { useDojo } from "./DojoContext";
-import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { GameBoard } from "./GameBoard";
 import { useGameContext } from "./GameContext";
 import Lobby from "./Lobby";
+import  ActivityLogComponent from "./ActivityLogComponent";
 import { ErrorWithShortMessage } from "./CustomTypes";
 import { PlayersList } from "./PlayersList";
 import SpawnModal from "./SpawnModal";
@@ -16,7 +16,7 @@ import RulesModal from "./RulesModal";
 function App() {
     const {
         setup: {
-            components: { Moves, Position, Player, GameSession, InGame },
+            components: { Player, GameSession },
             systemCalls: { startMatch },
         },
         account: {
@@ -44,9 +44,6 @@ function App() {
     const [showLeaveGameButton, setShowLeaveGameButton] = useState(true);
     const [showLeaveGameModal, setShowLeaveGameModal] = useState(false);
     const [showRulesModal, setShowRulesModal] = useState(false);
-    const [currentGameID, setCurrentGameID] = useState<number | undefined>(undefined);
-    const [playerEntity, setPlayerEntity] = useState<ComponentValue | null>(null); 
-
 
     const [clipboardStatus, setClipboardStatus] = useState({
         message: "",
@@ -54,29 +51,6 @@ function App() {
     });
 
     const gameSessions = useEntityQuery([Has(GameSession)]);
-    // entity id we are syncing
-    // const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-    // console.log("entityId: ", entityId);
-    // const fetchedPlayerEntity = getComponentValue(Player, entityId);
-    // console.log("fetchedPlayerEntity: ", fetchedPlayerEntity);
-    // // const currentGameID = useComponentValue(InGame, entityId)?.gameId;
-    
-    // useEffect(() => {
-    //   if (fetchedPlayerEntity) {
-    //     setCurrentGameID(Number(fetchedPlayerEntity.gameId));
-    //     console.log("currentGameID: ", currentGameID);
-    //   }
-    //   // Other dependencies might be necessary depending on when you want this effect to run
-    // }, [fetchedPlayerEntity]);
-    
-    
-// 
-    // get current component values
-    // const position = useComponentValue(Position, entityId);
-    // console.log("+++position+++: ", position);
-    // const moves = useComponentValue(Moves, entityId);
-   
-    // const newGameId = Number(useComponentValue(InGame, entityId)?.gameId);
 
     useEffect(() => {
       console.log("playerInGameId: ", playerInGameId);
@@ -88,49 +62,12 @@ function App() {
         setShowSpawnButton(true);
         setShowLeaveGameButton(false);
       }
-      // Only after all these operations, update the playerEntity state
-      // setPlayerEntity(fetchedPlayerEntity);
+
     }, [playerInGameId]); // Make sure entityId is the dependency if it affects fetchedPlayerEntity
 
-    // useEffect(() => {
-    //   console.log("useEffect called ==========");
-    //   const fetchedPlayerEntity = getComponentValue(Player, entityId) || null;
-    //   console.log("fetchedPlayerEntity: ", fetchedPlayerEntity);
-    //   setPlayerEntity(fetchedPlayerEntity);
-    //   console.log("playerEntity: ", playerEntity);
-    //   if (playerEntity) {
-    //     console.log("useEffect branch 1 taken")
-    //     console.log("playerEntity.gameId: ", playerEntity.gameId);
-    //     setCurrentGameID(Number(playerEntity.gameId));
-    //     setShowSpawnButton(false);
-    //     setShowLeaveGameButton(true);
-    //   } else {
-    //     console.log("useEffect branch 2 taken")
-    //     setShowSpawnButton(true);
-    //     setShowLeaveGameButton(false);
-    //   }
-    // }, []);
-    //
-    // useEffect(() => {
-    //     // Hide spawn button if player is already spawned
-    //     // console.log("useEffect currentGameID: ", currentGameID)
-    //     // console.log("useEffect entityId: ", entityId)
-    //     console.log("playerEntity: ", playerEntity);
-    //     if (playerEntity) {
-    //       console.log("1")
-    //       setCurrentGameID(Number(playerEntity.gameId));
-    //       setShowSpawnButton(false);
-    //       setShowLeaveGameButton(true);
-    //     } else {
-    //       setShowSpawnButton(true);
-    //       setShowLeaveGameButton(false);
-    //     }
-    //   });
-    // console.log("currentGameID: ", currentGameID);
     const allPlayers = useEntityQuery([
         Has(Player),
       ]);
-    // console.log("allPlayers: ", allPlayers);
     
     // const playerPosition = useComponentValue(Position, allPlayers[0])
     // console.log('player position: ', playerPosition);
@@ -262,7 +199,7 @@ function App() {
                     <br />
                   </div>
                   <div className="m-2 w-1/3 bg-slate-900 border border-gray-700 p-2 min-w-[30rem] max-h-[40rem] rounded-md overflow-auto">
-                    {/* <ActivityLogComponent /> */}
+                    <ActivityLogComponent />
                   </div>
                 </div>
                 <SpawnModal
