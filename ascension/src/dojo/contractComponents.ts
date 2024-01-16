@@ -199,5 +199,18 @@ export function defineContractComponents(world: World) {
 	      }
 	    );
 	  })(),
+	  PlayerSpawned: (() => {
+	    return defineComponent(
+	      world,
+	      { timestamp: RecsType.BigInt, position: { x: RecsType.Number, y: RecsType.Number }, gameId: RecsType.BigInt, player: RecsType.String },
+	      {
+	        metadata: {
+	          name: "PlayerSpawned",
+	          types: ["felt252","u32","u32","felt252","felt252"],
+	          customTypes: ["Vec2"],
+	        },
+	      }
+	    );
+	  })(),
   };
 }

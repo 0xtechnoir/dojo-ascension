@@ -1,21 +1,127 @@
-import { GraphQLClient, gql } from "graphql-request";
-import { Client, createClient } from "graphql-ws";
-import { getComponentValue, HasValue } from "@dojoengine/recs";
-import { useEntityQuery } from "@dojoengine/react";
+import { request, gql } from "graphql-request";
 import { useDojo } from "./DojoContext";
 import { LogMessage } from "./CustomTypes";
 import { formatDate } from "./utils";
 import { useGameContext } from "./GameContext";
 import { useEffect, useState } from "react";
-import { World__Subscription } from "./generated/graphql";
+import { decodeComponent } from "./utils";
+import { shortString } from "starknet";
+
+interface EventData {
+  id: string;
+  keys: string[];
+  data: string[];
+}
+
+interface EventResponse {
+  events: {
+    edges: Array<{
+      node: EventData;
+    }>;
+  };
+}
 
 const ActivityLogComponent = () => {
-//   const { gameId, displayMessage, setHighlightedPlayer } = useGameContext();
-//   const [mappedLogs, setMappedLogs] = useState<LogMessage[]>([]);
+  const { gameId } = useGameContext();
+  const [mappedLogs, setMappedLogs] = useState<LogMessage[]>([]);
+
+  const {
+    setup: {
+      components: { PlayerSpawned },
+    },
+  } = useDojo();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const document = gql`
+        {
+          events {
+            edges {
+              node {
+                id
+                keys
+                data
+              }
+            }
+          }
+        }
+      `;
+
+      try {
+        const response = (await request(
+          "http://0.0.0.0:8080/graphql/",
+          document
+        )) as EventResponse;
+
+        const filteredEvents = response.events.edges.filter(
+          (edge) =>
+            edge.node.keys[0] ===
+            "0x1ef11bf16e094cf410426c94099c06ad3ae2ace8f1f55e38df02c09a1dff618"
+        );
+
+        const newPlayerSpawnedLogs = filteredEvents.reduce(
+          (
+            newLogs: { id: string; timestamp: number; message: string }[],
+            edge
+          ) => {
+            // Check if the event is already in mappedLogs
+            if (!mappedLogs.some((log) => log.id === edge.node.id)) {
+              const decodedData = decodeComponent(
+                PlayerSpawned,
+                edge.node.data
+              );
+              const player = shortString.decodeShortString(decodedData.player);
+              const ts = Number(decodedData.timestamp);
+              const x = decodedData.position.x;
+              const y = decodedData.position.y;
+
+              newLogs.push({
+                id: edge.node.id,
+                timestamp: ts,
+                message: `${player} spawned at (${x}, ${y})`,
+              });
+            }
+            return newLogs;
+          },
+          []
+        );
+        setMappedLogs((prevLogs) =>
+          [...prevLogs, ...newPlayerSpawnedLogs].sort(
+            (a, b) => b.timestamp - a.timestamp
+          )
+        );
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    const intervalId = setInterval(fetchData, 5000);
+    return () => clearInterval(intervalId); // Cleanup interval on unmount
+  }, [mappedLogs]);
+
+  return (
+    <div className="h-full items-start p-3 rounded-md">
+      <h1 className="text-2xl font-bold text-white mb-4">Ships Log:</h1>
+      <ul className="list-decimal text-white">
+        {mappedLogs.map((logObj, index) => (
+          <ul key={index} className="mb-1">
+            <span className="text-gray-400 text-sm">{`${formatDate(
+              logObj.timestamp
+            )}`}</span>
+            <span className="text-orange-400 text-sm"> : </span>
+            <span className="text-white text-sm">{logObj.message}</span>
+          </ul>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default ActivityLogComponent;
 
 //   const {
 //     setup: {
-//         components: { 
+//         components: {
 //           PlayerSpawned,
 //           AttackExecuted,
 //           SendActionPointExecuted,
@@ -31,8 +137,8 @@ const ActivityLogComponent = () => {
 //           PlayerWon,
 //         },
 //     },
-//     account: { 
-//       account, 
+//     account: {
+//       account,
 //     },
 //   } = useDojo();
 
@@ -120,22 +226,6 @@ const ActivityLogComponent = () => {
 //       const mappedLog: LogMessage = {
 //         timestamp: numTs,
 //         message: `Game Ended`,
-//       };
-//       return mappedLog;
-//     });
-//   };
-
-//   const mapPlayerSpawnedLogs = () => {
-//     return allPlayerSpawnedLogs.map((entity) => {
-//       const rec = getComponentValue(PlayerSpawned, entity);
-//       const player = rec?.player;
-//       const ts = rec?.timestamp;
-//       const numTs = Number(ts);
-//       const x = rec?.x;
-//       const y = rec?.y;
-//       const mappedLog: LogMessage = {
-//         timestamp: numTs,
-//         message: `${player} spawned at (${x}, ${y})`,
 //       };
 //       return mappedLog;
 //     });
@@ -242,9 +332,7 @@ const ActivityLogComponent = () => {
 //   const allRangeIncreaseLogs = useEntityQuery([
 //     HasValue(RangeIncreaseExecuted, { gameId: gameId ?? undefined }),
 //   ]);
-//   const allPlayerSpawnedLogs = useEntityQuery([
-//     HasValue(PlayerSpawned, { gameId: gameId ?? undefined }),
-//   ]);
+
 //   const allPlayerLeftGameLogs = useEntityQuery([
 //     HasValue(PlayerLeftGame, { gameId: gameId ?? undefined }),
 //   ]);
@@ -270,57 +358,35 @@ const ActivityLogComponent = () => {
 //     HasValue(PlayerWon, { gameId: gameId ?? undefined }),
 //   ]);
 
-//   useEffect(() => {
-//     const newMappedLogs = [
-//       ...mapMoveLogs(),
-//       ...mapAttackLogs(),
-//       ...mapSendActionPointLogs(),
-//       ...mapRangeIncreaseLogs(),
-//       ...mapGameStartedLog(),
-//       ...mapGameEndedLog(),
-//       ...mapPlayerSpawnedLogs(),
-//       ...mapPlayerLeftGameLogs(),
-//       ...mapPlayerDiedLogs(),
-//       ...mapActionPointClaimExecutedLogs(),
-//       ...mapVoteExecutedLogs(),
-//       ...mapVotingPointClaimExecutedLogs(),
-//       ...mapPlayerWonLogs(),
-//     ];
-//     setMappedLogs(newMappedLogs);
-//   }, [
-//     allMoveLogs,
-//     allAttackLogs,
-//     allSendActionPointLogs,
-//     allRangeIncreaseLogs,
-//     gameStarted,
-//     gameEnded,
+// useEffect(() => {
+//   const newMappedLogs = [
+//     ...mapPlayerSpawnedLogs(),
+//     // ...mapMoveLogs(),
+//     // ...mapAttackLogs(),
+//     // ...mapSendActionPointLogs(),
+//     // ...mapRangeIncreaseLogs(),
+//     // ...mapGameStartedLog(),
+//     // ...mapGameEndedLog(),
+//     // ...mapPlayerLeftGameLogs(),
+//     // ...mapPlayerDiedLogs(),
+//     // ...mapActionPointClaimExecutedLogs(),
+//     // ...mapVoteExecutedLogs(),
+//     // ...mapVotingPointClaimExecutedLogs(),
+//     // ...mapPlayerWonLogs(),
+//   ];
+//   setMappedLogs(newMappedLogs);
+// }, [
 //     allPlayerSpawnedLogs,
-//     allPlayerLeftGameLogs,
-//     allPlayerDiedLogs,
-//     allActionPointClaimExecutedLogs,
-//     allVoteExecutedLogs,
-//     allVotingPointClaimExecutedLogs,
-//     playerWon,
-//   ]);
-
-  return (
-    <div className="h-full items-start p-3 rounded-md">
-      <h1 className="text-2xl font-bold text-white mb-4">Ships Log:</h1>
-      {/* <ul className="list-decimal text-white">
-        {mappedLogs
-          .sort((a, b) => b.timestamp - a.timestamp)
-          .map((logObj) => (
-            <ul key={crypto.randomUUID()} className="mb-1">
-              <span className="text-gray-400 text-sm">{`${formatDate(
-                logObj.timestamp
-              )}`}</span>
-              <span className="text-orange-400 text-sm"> : </span>
-              <span className="text-white text-sm">{logObj.message}</span>
-            </ul>
-          ))}
-      </ul> */}
-    </div>
-  );
-};
-
-export default ActivityLogComponent;
+// //   allMoveLogs,
+// //   allAttackLogs,
+// //   allSendActionPointLogs,
+// //   allRangeIncreaseLogs,
+// //   gameStarted,
+// //   gameEnded,
+// //   allPlayerLeftGameLogs,
+// //   allPlayerDiedLogs,
+// //   allActionPointClaimExecutedLogs,
+// //   allVoteExecutedLogs,
+// //   allVotingPointClaimExecutedLogs,
+// //   playerWon,
+// ]);

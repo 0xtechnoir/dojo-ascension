@@ -7,6 +7,7 @@ export interface ErrorWithShortMessage {
 }
 
 export interface LogMessage {
+  id: string;
   timestamp: number;
   message: string;
 }
