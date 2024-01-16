@@ -7,7 +7,7 @@ interface DojoContextType extends SetupResult {
     masterAccount: Account;
 }
 
-const DojoContext = createContext<DojoContextType | null>(null);
+export const DojoContext = createContext<DojoContextType | null>(null);
 
 const requiredEnvs = [
     "VITE_PUBLIC_MASTER_ADDRESS",

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import { Entity } from "@latticexyz/recs";
-// import { MessageModal } from "./MessageModal";
+import { MessageModal } from "./MessageModal";
 
 type GameContextProps = {
   message: string;
@@ -66,9 +66,9 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   return (
     <GameContext.Provider value={values}>
       {children}
-      {/* {message && (
+      {message && (
         <MessageModal message={message} onClose={closeMessageModal} />
-      )} */}
+      )}
     </GameContext.Provider>
   );
 };

@@ -125,3 +125,13 @@ export const parseError = (error: any) => {
   const parsed = JSON.parse(json);
   return parsed.reason;
 };
+
+export const extractErrorMessage = (errorString: string) => {
+  // Regular expression to match the pattern of the error message
+  // It looks for a string that starts with 0x followed by characters until it reaches (' and ends at ')
+  const regex = /0x[0-9a-fA-F]+ \('(.+?)'\)/;
+  const match = errorString.match(regex);
+
+  // If a match is found, return the captured group (error message), otherwise return null
+  return match ? match[1] : null;
+};

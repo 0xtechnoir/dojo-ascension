@@ -21,8 +21,8 @@ interface EventResponse {
   };
 }
 
-const ActivityLogComponent = () => {
-  const { gameId } = useGameContext();
+const ActivityLog = () => {
+  const { playerInGameId } = useGameContext();
   const [mappedLogs, setMappedLogs] = useState<LogMessage[]>([]);
 
   const {
@@ -31,11 +31,16 @@ const ActivityLogComponent = () => {
     },
   } = useDojo();
 
+  const gameId =
+    playerInGameId !== null && !isNaN(playerInGameId)
+      ? BigInt(playerInGameId)
+      : undefined;
+
   useEffect(() => {
     const fetchData = async () => {
       const document = gql`
-        {
-          events {
+        query GetEvents($keys: [String!]) {
+          events(keys: $keys) {
             edges {
               node {
                 id
@@ -47,44 +52,44 @@ const ActivityLogComponent = () => {
         }
       `;
 
+      const variables = {
+        keys: ["0x1ef11bf16e094cf410426c94099c06ad3ae2ace8f1f55e38df02c09a1dff618", "0x152dcff993befafe5001975149d2c50bd9621da7cbaed74f68e7d5e54e65abc"]
+      };
+    
+
       try {
         const response = (await request(
           "http://0.0.0.0:8080/graphql/",
-          document
+          document,
+          variables
         )) as EventResponse;
 
-        const filteredEvents = response.events.edges.filter(
-          (edge) =>
-            edge.node.keys[0] ===
-            "0x1ef11bf16e094cf410426c94099c06ad3ae2ace8f1f55e38df02c09a1dff618"
-        );
-
-        const newPlayerSpawnedLogs = filteredEvents.reduce(
-          (
-            newLogs: { id: string; timestamp: number; message: string }[],
-            edge
-          ) => {
-            // Check if the event is already in mappedLogs
+        const newPlayerSpawnedLogs = response.events.edges
+          .filter((edge) => {
+            const decodedData = decodeComponent(PlayerSpawned, edge.node.data);
+            console.log("decodedData GameId: ", decodedData.gameId);
+            console.log("gameId: ", gameId);  
+            if (decodedData.gameId === gameId) {
+              return true;
+            }
+          })
+          .reduce((acc: LogMessage[], edge) => {
+            // check if log already exists in mappedLogs
             if (!mappedLogs.some((log) => log.id === edge.node.id)) {
-              const decodedData = decodeComponent(
-                PlayerSpawned,
-                edge.node.data
-              );
+              const decodedData = decodeComponent(PlayerSpawned, edge.node.data);
               const player = shortString.decodeShortString(decodedData.player);
               const ts = Number(decodedData.timestamp);
               const x = decodedData.position.x;
               const y = decodedData.position.y;
-
-              newLogs.push({
+              acc.push({
                 id: edge.node.id,
                 timestamp: ts,
                 message: `${player} spawned at (${x}, ${y})`,
               });
             }
-            return newLogs;
-          },
-          []
-        );
+            return acc;
+            }, []);      
+  
         setMappedLogs((prevLogs) =>
           [...prevLogs, ...newPlayerSpawnedLogs].sort(
             (a, b) => b.timestamp - a.timestamp
@@ -117,7 +122,7 @@ const ActivityLogComponent = () => {
   );
 };
 
-export default ActivityLogComponent;
+export default ActivityLog;
 
 //   const {
 //     setup: {

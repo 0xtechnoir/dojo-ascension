@@ -14,7 +14,7 @@ mod actions {
     use starknet::{ContractAddress, get_caller_address};
     use dojo_examples::models::{
         Position, Direction, Vec2, GameSession, PieceType, Square, Health, Range,
-        ActionPoint, Alive, Player, InGame
+        ActionPoint, Alive, Player, InGame, Username
     };
     use dojo_examples::utils::next_position;
     use super::IActions;
@@ -131,6 +131,7 @@ mod actions {
                         world,
                         (   
                             Player { player, gameId: game_id },
+                            Username { player, value: username },
                             InGame { player, gameId: game_id },
                             Position { player, game_id, vec: square.vec },
                             Square { game_id: game_id, vec: square.vec, piece: PieceType::Player },
@@ -140,7 +141,7 @@ mod actions {
                             ActionPoint { player, value: 3 },
                         )
                     );
-                    emit!(world, PlayerSpawned { timestamp: start_time, position: square.vec, gameId: game_id, player: 'test' });
+                    emit!(world, PlayerSpawned { timestamp: start_time, position: square.vec, gameId: game_id, player: username });
                     break;
                 }
                 i += 1;
