@@ -65,8 +65,8 @@ export function createSystemCalls(
     try {
       tx = await execute(account!, "actions", "startMatch", [
         BigInt(gameId),
-        1,
-        startTime,
+        playersSpawned,
+        BigInt(startTime),
       ]);
       receipt = await account!.waitForTransaction(tx.transaction_hash, {
         retryInterval: 100,

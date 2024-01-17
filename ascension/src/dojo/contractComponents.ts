@@ -212,5 +212,18 @@ export function defineContractComponents(world: World) {
 	      }
 	    );
 	  })(),
+	  GameStarted: (() => {
+	    return defineComponent(
+	      world,
+	      { startTime: RecsType.BigInt, gameId: RecsType.BigInt },
+	      {
+	        metadata: {
+	          name: "GameStarted",
+	          types: ["felt252","felt252"],
+	          customTypes: [],
+	        },
+	      }
+	    );
+	  })(),
   };
 }
