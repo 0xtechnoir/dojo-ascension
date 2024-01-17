@@ -59,7 +59,6 @@ function App() {
   const gameSessions = useEntityQuery([Has(GameSession)]);
 
   useEffect(() => {
-    console.log("playerInGameId: ", playerInGameId);
     // Use the fetched value directly in this effect
     if (playerInGameId) {
       setShowSpawnButton(false);
@@ -79,8 +78,6 @@ function App() {
           : undefined,
     }),
   ]);
-
-  console.log("allPlayers: ", allPlayers);
 
   // const playerPosition = useComponentValue(Position, allPlayers[0])
   // console.log('player position: ', playerPosition);
@@ -132,7 +129,6 @@ function App() {
       throw new Error("No game ID found");
     }
     try {
-      console.log("start match");
       await startMatch(account, gameId, playersSpawned, startTime);
     } catch (error: any) {
       if (error instanceof Error) {
@@ -140,10 +136,6 @@ function App() {
         console.log("message: ", message);
         message ? displayMessage(message) : null
       }
-      // if (typeof error === "object" && error !== null) {
-      //   const message = (error as ErrorWithShortMessage).cause.data.args[0];
-      //   displayMessage(message);
-      // }
     }
   };
 

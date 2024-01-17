@@ -104,7 +104,6 @@ const ActivityLog = () => {
     };
 
     const isRelevantEvent = (edge: EventNode): boolean => {
-      console.log("logType: ", edge.node.keys[0]);
       const key = edge.node.keys[0] as EventKeys;
       const logTypeComponent = logTypes[key];
       if (!logTypeComponent) return false;
