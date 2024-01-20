@@ -1,107 +1,57 @@
 import { useEffect, useState, useRef } from "react";
-import { Has, HasValue, Entity, getComponentValueStrict, getComponentValue } from "@dojoengine/recs";
-import { useComponentValue, useEntityQuery } from "@dojoengine/react";
+import { Has, HasValue, Entity, getComponentValue } from "@dojoengine/recs";
+import { useEntityQuery } from "@dojoengine/react";
 import { GameMap } from "./GameMap";
 import { useKeyboardMovement } from "./useKeyboardMovement";
 import { useGameContext } from "./GameContext";
-// import { Player as PlayerComponet } from "./Player";
 import { useDojo } from "./DojoContext";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
+import { ErrorWithShortMessage } from "./CustomTypes";
 
 interface GameBoardProps {
   players: Entity[];
 }
 
-interface ContextMenuState {
-  visible: boolean;
-  x: number;
-  y: number;
-  playerEntity: Entity | null;
-}
-
 export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
   const [showUsernameInput, setShowUsernameInput] = useState(false);
-  // const [contextMenu, setContextMenu] = useState<ContextMenuState>({
-  //   visible: false,
-  //   x: 0,
-  //   y: 0,
-  //   playerEntity: null,
-  // });
-  const { displayMessage, highlightedPlayer, setHighlightedPlayer } =
-    useGameContext();
+  const { displayMessage, gameId } = useGameContext();
   const containerRef = useRef<HTMLDivElement>(null); // Create a ref for the container
 
   const {
     setup: {
-        components: { Moves, Position, Range, Player, Alive },
+      components: { Position, Player, Alive },
+      systemCalls: { move },
     },
-    account: { 
-      account, 
-    },
+    account: { account },
   } = useDojo();
 
   const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-
-
-  // const closeContextMenu = () => {
-  //   setContextMenu({ visible: false, x: 0, y: 0, playerEntity: null });
-  // };
-
-  // const onRightClickPlayer = (
-  //   event: React.MouseEvent,
-  //   clickedPlayerEntity: Entity | null
-  // ) => {
-  //   if (clickedPlayerEntity === playerEntity) {
-  //     return;
-  //   }
-
-  //   if (clickedPlayerEntity === null) {
-  //     return;
-  //   }
-
-  //   event.preventDefault();
-  //   setHighlightedPlayer(clickedPlayerEntity);
-  //   // Get the bounding rectangle of the container
-  //   const containerRect = containerRef.current?.getBoundingClientRect();
-  //   if (containerRect) {
-  //     // Calculate the position relative to the container
-  //     const x = event.clientX - containerRect.left + 50;
-  //     const y = event.clientY - containerRect.top;
-  //     setContextMenu({
-  //       visible: true,
-  //       x: x,
-  //       y: y,
-  //       playerEntity: clickedPlayerEntity,
-  //     });
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   document.addEventListener("click", closeContextMenu);
-  //   return () => {
-  //     document.removeEventListener("click", closeContextMenu);
-  //   };
-  // }, []);
 
   const deadPlayers = useEntityQuery([
     Has(Player),
     HasValue(Alive, { value: false }),
   ]);
-
-  const mappedPlayers = players.map((entity) => {
-    const position = getComponentValue(Position, entity);
-    let emoji = !deadPlayers.includes(entity) ? (entity === playerEntity ? "🚀" : "🛸") : "💀";
-    if (position) {
-      return {
-        entity,
-        x: position.vec.x,
-        y: position.vec.y,
-        emoji: emoji,
-      };
-    } else { 
-      return null
-    }
-  })
+  let mappedPlayers;
+  if (playerEntity) {
+    mappedPlayers = players.map((entity) => {
+      const position = getComponentValue(Position, entity);
+      let emoji = !deadPlayers.includes(entity)
+        ? entity === playerEntity
+          ? "🚀"
+          : "🛸"
+        : "💀";
+      if (position) {
+        return {
+          entity,
+          x: position.vec.x,
+          y: position.vec.y,
+          emoji: emoji,
+        };
+      } else {
+        return null;
+      }
+    });
+  }
 
   const closeModal = () => {
     setShowUsernameInput(false);
@@ -121,39 +71,54 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
   }, [showUsernameInput]);
 
   // const { moveMessage, clearMoveMessage } = useKeyboardMovement();
-  // useEffect(() => {
-  //   if (moveMessage) {
-  //     // When setting the error message, add the new message to the existing array instead of replacing it.
-  //     displayMessage(moveMessage);
-  //     clearMoveMessage();
-  //   }
-  // }, [moveMessage]);
+  const [moveMessage, setMoveMessage] = useState<string>("");
 
-  // Function to handle the button click
-  // const selectPlayer = (inputX: number, inputY: number) => {
-  //   const player = mappedPlayers.find((player) => {
-  //     if (!player) {
-  //       return;
-  //     }
-  //     const position = getComponentValueStrict(Position, player.entity);
-  //     return position.vec.x === inputX && position.vec.y === inputY;
-  //   });
+  const clearMoveMessage = () => {
+    setMoveMessage("");
+  };
 
-  //   if (player) {
-  //     setHighlightedPlayer(player.entity);
-  //   }
-  // };
+  useEffect(() => {
+    const listener = async (e: KeyboardEvent) => {
+      try {
+        if (gameId) {
+          if (e.key === "ArrowUp") {
+            await move(account, 0, -1, gameId);
+          }
+          if (e.key === "ArrowDown") {
+            await move(account, 0, 1, gameId);
+          }
+          if (e.key === "ArrowLeft") {
+            await move(account, -1, 0, gameId);
+          }
+          if (e.key === "ArrowRight") {
+            await move(account, 1, 0, gameId);
+          }
+        }
+      } catch (error) {
+        console.log("catch block triggerd. Error: ", error);
+        if (typeof error === "object" && error !== null) {
+          const message = (error as ErrorWithShortMessage).cause.data.args[0];
+          setMoveMessage(message);
+        } else {
+          console.error(error);
+        }
+      }
+    };
 
-  // Get map width and height from MapConfig component
-  // const mapConfig = useComponentValue(MapConfig, singletonEntity);
-  // if (mapConfig == null) {
-  //   throw new Error(
-  //     "map config not set or not ready, only use this hook after loading state === LIVE"
-  //   );
-  // }
-  // const { width, height } = mapConfig;
-  const width = 11
-  const height = 11
+    window.addEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
+  }, [move]);
+
+  useEffect(() => {
+    if (moveMessage) {
+      // When setting the error message, add the new message to the existing array instead of replacing it.
+      displayMessage(moveMessage);
+      clearMoveMessage();
+    }
+  }, [moveMessage]);
+
+  const width = 11;
+  const height = 11;
 
   return (
     <div
@@ -202,29 +167,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
         ))}
       </div>
       <div className="flex p-6 box-border w-full h-full bg-slate-700">
-        <GameMap
-          width={width}
-          height={height}
-          // onTileClick={selectPlayer}
-          players={mappedPlayers}
-          // onRightClickPlayer={onRightClickPlayer}
-        />
-        {/* contect menu here */}
+        <GameMap width={width} height={height} players={mappedPlayers || []} />
       </div>
     </div>
   );
 };
-
-
-// {contextMenu.playerEntity && contextMenu.visible && (
-//   <div
-//     className="context-menu"
-//     style={{
-//       position: "absolute",
-//       left: `${contextMenu.x}px`,
-//       top: `${contextMenu.y}px`,
-//     }}
-//   >
-//     {/* <PlayerComponet entity={contextMenu.playerEntity} /> */}
-//   </div>
-// )}

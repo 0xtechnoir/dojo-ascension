@@ -61,10 +61,10 @@ const SpawnModal: React.FC<SpawnModalProps> = ({
       if (!gameId) {
         throw new Error("No game ID found");
       }
+      console.log("Account address [SpawnModal.tsx - onSubmit()]: ", account.address);
       await spawn(account, sanitizedUsername, BigInt(gameId));
       setShowSpawnButton(false);
       const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-      console.log("entityId: ", entityId);
       const id = getComponentValue(Player, entityId)?.gameId;
       setPlayerInGameId(Number(id));
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useDojo } from "./DojoContext";
+import { useDojo, useDojoAccount } from "./DojoContext";
 import { ErrorWithShortMessage } from "./CustomTypes";
 import { useGameContext } from "./GameContext";
 
@@ -7,9 +7,11 @@ export const useKeyboardMovement = () => {
 
   const {
     setup: {
-        systemCalls: { moveBy }, 
+        systemCalls: { move }, 
     },
   } = useDojo();
+
+  const { account } = useDojoAccount();
 
   const [moveMessage, setMoveMessage] = useState<string>("");
   const { gameId } = useGameContext();
@@ -20,19 +22,20 @@ export const useKeyboardMovement = () => {
 
   useEffect(() => {
     const listener = async (e: KeyboardEvent) => {
+      console.log("moveby account address: ", account.address)
       try {
         if (gameId) {
           if (e.key === "ArrowUp") {
-            await moveBy(0, -1, gameId);
+            await move(account, 0, -1, gameId);
           }
           if (e.key === "ArrowDown") {
-            await moveBy(0, 1, gameId);
+            await move(account, 0, 1, gameId);
           }
           if (e.key === "ArrowLeft") {
-            await moveBy(-1, 0, gameId);
+            await move(account, -1, 0, gameId);
           }
           if (e.key === "ArrowRight") {
-            await moveBy(1, 0, gameId);
+            await move(account, 1, 0, gameId);
           }
         }
       } catch (error) {
@@ -48,7 +51,7 @@ export const useKeyboardMovement = () => {
 
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, [moveBy]);
+  }, [move]);
 
   return { moveMessage, clearMoveMessage };
 };

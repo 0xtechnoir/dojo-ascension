@@ -21,6 +21,19 @@ impl DirectionIntoFelt252 of Into<Direction, felt252> {
     }
 }
 
+// Constant definition for a game data key. This allows us to fetch this model using the key.
+const GAME_DATA_KEY: felt252 = 'game';
+// Structure for storing game data with a key, number of players, and available IDs
+#[derive(Model, Copy, Drop, Serde)]
+struct GameData {
+    #[key]
+    game: felt252, // Always 'game'
+    board_width: u32,
+    board_height: u32,
+    number_of_players: u8,
+    available_ids: u256, // Packed u8s?
+}
+
 #[derive(Serde, Drop, Copy, PartialEq, Introspect)]
 enum PieceType {
     Player: (),

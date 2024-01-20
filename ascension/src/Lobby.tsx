@@ -2,16 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useGameContext } from "./GameContext";
 import { useEntityQuery } from "@dojoengine/react";
 import { getComponentValue, Has, Entity } from "@dojoengine/recs";
-import { useDojo } from "./DojoContext";
+import { useDojo, useDojoAccount } from "./DojoContext";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 
 interface LobbyProps {
-  showGameBoard: boolean;
+  setShowGameBoard: React.Dispatch<React.SetStateAction<boolean>>;
   currentGameID: number | null;
 }
 
-const Lobby: React.FC<LobbyProps> = ({ currentGameID }) => {
-  const { setGameId, displayMessage, setShowGameBoard, setPlayerInGameId, playerInGameId } = useGameContext();
+const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
+  const { setGameId, displayMessage, setPlayerInGameId, playerInGameId } = useGameContext();
   const [clipboardStatus, setClipboardStatus] = useState({
     message: "",
     isError: false,
@@ -21,24 +21,34 @@ const Lobby: React.FC<LobbyProps> = ({ currentGameID }) => {
     setup: {
       components: { GameSession, Player },
     },
-    account: {
-      account,
-      create,
-      isDeploying,
-      clear,
-      copyToClipboard,
-      applyFromClipboard,
-      list,
-      select,
-    },
   } = useDojo();
-
+  const { 
+    account, 
+    create, 
+    select, 
+    applyFromClipboard,
+    copyToClipboard,
+    isDeploying,
+    list,
+    clear,
+   } = useDojoAccount()
 
   useEffect(() => {
     const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
     const id = getComponentValue(Player, entityId)?.gameId;
     setPlayerInGameId(Number(id));
   })
+
+  useEffect(() => {
+    if (clipboardStatus.message) {
+      const timer = setTimeout(() => {
+        setClipboardStatus({ message: "", isError: false });
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [clipboardStatus.message]);
+
 
   const [inputGameID, setInputGameID] = useState<number | null>(null);
   const allGameSessions = useEntityQuery([Has(GameSession)]);
@@ -76,8 +86,10 @@ const Lobby: React.FC<LobbyProps> = ({ currentGameID }) => {
   };
 
   const createBurner = async () => {
-    await create();
+    const account = await create();
+    console.log("Account address [Lobby.tsx - createBurner()]: ", account.address);
     const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
+    console.log("entityId [Lobby.tsx - createBurner()]: ", entityId);
   };
 
   const selectBurner = (address: string) => {

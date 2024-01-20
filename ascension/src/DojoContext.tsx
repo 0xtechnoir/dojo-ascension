@@ -93,3 +93,11 @@ export const useDojo = () => {
         },
     };
 };
+
+export const useDojoAccount = () => {
+    const { account } = useDojo()
+    // account: { create, list, select, account, isDeploying }
+    return {
+      ...account,
+    }
+  }

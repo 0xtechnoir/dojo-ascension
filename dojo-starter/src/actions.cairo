@@ -1,4 +1,9 @@
-use dojo_examples::models::{Direction, GameSession, PieceType, Square, Vec2, Health, Range, Alive, ActionPoint};
+const INITIAL_AP: u8 = 3;
+const INITIAL_HP: u8 = 3;
+const INITIAL_RANGE: u8 = 2;
+const X_RANGE: u128 = 11; // These need to be u128
+const Y_RANGE: u128 = 11; // These need to be u128
+const ORIGIN_OFFSET: u8 = 22; // Origin offset
 
 // define the interface
 #[starknet::interface]
@@ -6,6 +11,7 @@ trait IActions<TContractState> {
     fn spawn_game(self: @TContractState, game_id: felt252, start_time: felt252);
     fn spawn(self: @TContractState, start_time: felt252, username: felt252, game_id: felt252);
     fn startMatch(self: @TContractState, game_id: felt252, playersSpawned: u8, startTime: felt252);
+    fn move(self: @TContractState, timestamp: felt252, deltaX: u32, deltaY: u32, game_id: felt252);
 }
 
 // dojo decorator
@@ -14,10 +20,12 @@ mod actions {
     use starknet::{ContractAddress, get_caller_address};
     use dojo_examples::models::{
         Position, Direction, Vec2, GameSession, PieceType, Square, Health, Range,
-        ActionPoint, Alive, Player, InGame, Username
+        ActionPoint, Alive, Player, InGame, Username, GameData, GAME_DATA_KEY
     };
     use dojo_examples::utils::next_position;
-    use super::IActions;
+    use super::{
+        IActions, ORIGIN_OFFSET, INITIAL_AP, INITIAL_HP, INITIAL_RANGE, X_RANGE, Y_RANGE
+    };
     use debug::PrintTrait;
 
     // declaring custom event enum
@@ -27,22 +35,22 @@ mod actions {
         GameStarted: GameStarted,
         Log: Log,
         PlayerSpawned: PlayerSpawned,
+        PlayerMoved: PlayerMoved,
     }
 
-    // declaring custom event struct
+    // custom event structs
+
     #[derive(Drop, starknet::Event)]
     struct Log {
         message: felt252,
     }
 
-    // declaring custom event struct
     #[derive(Drop, starknet::Event)]
     struct GameStarted {
         startTime: felt252,
         gameId: felt252,
     }
 
-    // declaring custom event struct
     #[derive(Drop, starknet::Event)]
     struct PlayerSpawned {
         timestamp: felt252,
@@ -50,6 +58,37 @@ mod actions {
         gameId: felt252,
         player: felt252,
     }
+
+    #[derive(Drop, starknet::Event)]
+    struct PlayerMoved {
+        timestamp: felt252,
+        from: Vec2,
+        to: Vec2,
+        gameId: felt252,
+        player: felt252,
+    }
+
+    // fn isValidDelta(self: @ContractState, deltaX: u32, deltaY: u32) -> bool {
+
+       
+    //     let deltaXValid = (deltaX == 1 || deltaX == -1 || deltaX == 0);
+    //     let deltaYValid = (deltaY == 1 || deltaY == -1 || deltaY == 0);
+    //     // Ensure that if one is non-zero, the other must be zero
+    //     let deltaValid = (deltaX != 0 && deltaY == 0) || (deltaY != 0 && deltaX == 0);
+    //     return deltaXValid && deltaYValid && deltaValid;
+    // }
+
+    // fn checkForValidMove(self: @ContractState, fromX: u32, fromY: u32, deltaX: u32, deltaY: u32) -> bool {
+    //     let world = self.world_dispatcher.read();
+    //     // get board width and height
+    //     let board_width = get!(world, game_id, GameData).board_width;
+    //     let board_height = get!(world, game_id, GameData).board_height;
+    //     // check if move is within board bounds
+    //     if (fromX + deltaX) < 0 || (fromX + deltaX) > board_width || (fromY + deltaY) < 0 || (fromY + deltaY) > board_height {
+    //         return false;
+    //     }
+    //     true
+    // }
 
     // impl: implement functions specified in trait
     #[external(v0)]
@@ -156,44 +195,42 @@ mod actions {
             emit!(world, GameStarted { startTime: startTime, gameId: game_id });
         }
 
-        // function startMatch(uint32 gameId, uint32 playersSpawned, uint256 startTime) public {
-        //     require(playersSpawned > 1, "Not enough players to start match. Minimum 2 players required");
-        //     require(!GameSession.getIsLive(gameId), "Match has already started");
-        //     GameSession.setIsLive(gameId, true);
-        //     GameSession.setStartTime(gameId, startTime);
+        // Implementation of the move function for the ContractState struct.
+        fn move(self: @ContractState, timestamp: felt252, deltaX: u32, deltaY: u32, game_id: felt252) {
+            let world = self.world_dispatcher.read();
+            let player = get_caller_address();
+            assert(get!(world, game_id, GameSession).isLive == true, 'Match already started');
+            assert(get!(world, player, Alive).value == true, 'Player is dead');
+            let action_points = get!(world, player, ActionPoint);
+            assert(action_points.value > 0, 'AP required to move');
+            let mut position = get!(world, (player, game_id), Position);
+            let fromX = position.vec.x;
+            let fromY = position.vec.y;
+            let toX = fromX + deltaX;
+            let toY = fromY + deltaY;
 
-        //     GameStarted.set(gameId, GameStartedData({
-        //     timestamp: startTime,
-        //     gameId: gameId
-        //     }));
-        // }
+            // check if move is within board bounds
+            let max_x: felt252 = ORIGIN_OFFSET.into() + X_RANGE.into();
+            let max_y: felt252 = ORIGIN_OFFSET.into() + Y_RANGE.into();
+            assert(toX <= max_x.try_into().unwrap() && toY<= max_y.try_into().unwrap(), 'Out of bounds');
 
-        // // Implementation of the move function for the ContractState struct.
-        // fn move(self: @ContractState, direction: Direction) {
-        //     // Access the world dispatcher for reading.
-        //     let world = self.world_dispatcher.read();
 
-        //     // Get the address of the current caller, possibly the player's address.
-        //     let player = get_caller_address();
 
-        //     // Retrieve the player's current position and moves data from the world.
-        //     let (mut position, mut moves) = get!(world, player, (Position, Moves));
+            // assert(isValidDelta(deltaX, deltaY), 'Invalid move');
+            // assert(checkForValidMove(fromX, fromY, deltaX, deltaY), 'Invalid move');
 
-        //     // Deduct one from the player's remaining moves.
-        //     moves.remaining -= 1;
-
-        //     // Update the last direction the player moved in.
-        //     moves.last_direction = direction;
-
-        //     // Calculate the player's next position based on the provided direction.
-        //     let next = next_position(position, direction);
-
-        //     // Update the world state with the new moves data and position.
-        //     set!(world, (moves, next));
-
-        //     // Emit an event to the world to notify about the player's move.
-        //     emit!(world, Moved { player, direction });
-        // }
+            // check whether the square the player is moving to is occupied
+            let target_square = get!(world, (game_id, Vec2 { x: toX, y: toY }), Square);
+            assert(target_square.piece == PieceType::None, 'Target square is occupied');
+            // target square is unoccupied, so move player to it
+            set!(world, (Square { game_id: game_id, vec: Vec2 { x: toX, y: toY }, piece: PieceType::Player },));
+            // set the square the player is moving from to be unoccupied
+            set!(world, (Square { game_id: game_id, vec: Vec2 { x: fromX, y: fromY }, piece: PieceType::None },));
+            // emit event to notify of player move
+            // get player username
+            let username = get!(world, player, Username).value;
+            emit!(world, PlayerMoved { timestamp: timestamp, from: Vec2 { x: fromX, y: fromY }, to: Vec2 { x: toX, y: toY }, gameId: game_id, player: username });
+        }
     }
 }
 

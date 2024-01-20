@@ -1,6 +1,6 @@
 import { SetupNetworkResult } from "./setupNetwork";
 import { Account } from "starknet";
-import { Entity } from "@dojoengine/recs";
+import { Entity, getComponentValue } from "@dojoengine/recs";
 import { uuid } from "@latticexyz/utils";
 import { ClientComponents } from "./createClientComponents";
 import {
@@ -16,14 +16,20 @@ import {
 
 export type SystemCalls = ReturnType<typeof createSystemCalls>;
 
+// define custom struct type called Vec2 that has two 32-bit integer coordinates
+export type Vec2 = {
+  x: number;
+  y: number;
+};
+
 export function createSystemCalls(
   { execute, contractComponents }: SetupNetworkResult,
   { Position, Player, GameSession }: ClientComponents
 ) {
-  const spawn = async (signer: Account, username: string, gameId: bigint) => {
+  const spawn = async (account: Account, username: string, gameId: bigint) => {
     const encodedUsername: string = shortString.encodeShortString(username);
     const timestamp = Date.now();
-    const entityId = getEntityIdFromKeys([BigInt(signer.address)]) as Entity;
+    const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
     const playerId = uuid();
     Player.addOverride(playerId, {
       entity: entityId,
@@ -31,7 +37,7 @@ export function createSystemCalls(
     });
 
     try {
-      const { transaction_hash } = await execute(signer, "actions", "spawn", [
+      const { transaction_hash } = await execute(account, "actions", "spawn", [
         timestamp,
         encodedUsername,
         gameId,
@@ -40,7 +46,7 @@ export function createSystemCalls(
       setComponentsFromEvents(
         contractComponents,
         getEvents(
-          await signer.waitForTransaction(transaction_hash, {
+          await account.waitForTransaction(transaction_hash, {
             retryInterval: 100,
           })
         )
@@ -59,7 +65,6 @@ export function createSystemCalls(
     playersSpawned: number,
     startTime: number
   ) => {
-    console.log("startMatch called");
     let tx;
     let receipt;
     try {
@@ -71,7 +76,6 @@ export function createSystemCalls(
       receipt = await account!.waitForTransaction(tx.transaction_hash, {
         retryInterval: 100,
       });
-      console.log("receipt", receipt);
       setComponentsFromEvents(contractComponents, getEvents(receipt));
     } catch (e) {
       console.log(e);
@@ -92,58 +96,75 @@ export function createSystemCalls(
     }
   };
 
-  // const move = async (signer: Account, direction: Direction) => {
-  //     const entityId = getEntityIdFromKeys([
-  //         BigInt(signer.address),
-  //     ]) as Entity;
+  const move = async (
+    account: Account,
+    deltaX: number,
+    deltaY: number,
+    gameId: number
+  ) => {
+    const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
 
-  //     const positionId = uuid();
-  //     Position.addOverride(positionId, {
-  //         entity: entityId,
-  //         value: {
-  //             player: BigInt(entityId),
-  //             vec: updatePositionWithDirection(
-  //                 direction,
-  //                 getComponentValue(Position, entityId) as any
-  //             ).vec,
-  //         },
-  //     });
+    console.log(
+      "Account address [createSystemCalls.ts - move()]: ",
+      account.address
+    );
+    console.log("Entity ID [createSystemCalls.ts - move()]: ", entityId);
 
-  //     const movesId = uuid();
-  //     Moves.addOverride(movesId, {
-  //         entity: entityId,
-  //         value: {
-  //             player: BigInt(entityId),
-  //             remaining:
-  //                 (getComponentValue(Moves, entityId)?.remaining || 0) - 1,
-  //         },
-  //     });
+    // get players current position
+    const playerPosition = getComponentValue(Position, entityId);
+    if (!playerPosition) {
+      console.warn("cannot moveBy without a player position, not yet spawned?");
+      return;
+    }
+    const { x, y } = playerPosition.vec as Vec2;
 
-  //     try {
-  //         const { transaction_hash } = await execute(
-  //             signer,
-  //             "actions",
-  //             "move",
-  //             [direction]
-  //         );
+    const positionId = uuid();
+    Position.addOverride(positionId, {
+      entity: entityId,
+      value: {
+        player: BigInt(entityId),
+        game_id: BigInt(gameId),
+        vec: {
+          x: x + deltaX,
+          y: y + deltaY,
+        },
+      },
+    });
 
-  //         setComponentsFromEvents(
-  //             contractComponents,
-  //             getEvents(
-  //                 await signer.waitForTransaction(transaction_hash, {
-  //                     retryInterval: 100,
-  //                 })
-  //             )
-  //         );
-  //     } catch (e) {
-  //         console.log(e);
-  //         Position.removeOverride(positionId);
-  //         Moves.removeOverride(movesId);
-  //     } finally {
-  //         Position.removeOverride(positionId);
-  //         Moves.removeOverride(movesId);
-  //     }
-  // };
+    let tx, receipt;
+    try {
+      const bigIntTimestamp = BigInt(Date.now());
+      tx = await execute(account, "actions", "move", [
+        bigIntTimestamp,
+        deltaX,
+        deltaY,
+        BigInt(gameId),
+      ]);
+      receipt = await account!.waitForTransaction(tx.transaction_hash, {
+        retryInterval: 100,
+      });
+      setComponentsFromEvents(contractComponents, getEvents(receipt));
+    } catch (e) {
+      console.log(e);
+      Position.removeOverride(positionId);
+    } finally {
+      Position.removeOverride(positionId);
+    }
+
+    if (receipt && receipt.status === "REJECTED") {
+      throw Error(
+        (receipt as RejectedTransactionReceiptResponse)
+          .transaction_failure_reason.error_message
+      );
+    }
+
+    if (receipt && receipt.execution_status === "REVERTED") {
+      throw Error(
+        (receipt as RevertedTransactionReceiptResponse).revert_reason ||
+          "Transaction Reverted"
+      );
+    }
+  };
 
   const sendActionPoint = async (entity: Entity, gameId: number | null) => {
     console.log("sendActionPoint");
@@ -175,7 +196,7 @@ export function createSystemCalls(
 
   return {
     spawn,
-    moveBy,
+    move,
     sendActionPoint,
     attack,
     increaseRange,
