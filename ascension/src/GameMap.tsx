@@ -1,7 +1,7 @@
 import { useComponentValue } from "@dojoengine/react";
 import { Entity, getComponentValueStrict } from "@dojoengine/recs";
 import { twMerge } from "tailwind-merge";
-import { useDojo } from "./DojoContext";
+import { useDojo } from "./dojo/useDojo";
 import { useGameContext } from "./GameContext";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 
@@ -46,7 +46,7 @@ export const GameMap = ({
 
   const {
     setup: {
-        components: { Moves, Position, Range },
+        contractComponents: { Moves, Position, Range },
     },
     account: { 
       account, 

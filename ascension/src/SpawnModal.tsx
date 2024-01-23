@@ -3,7 +3,7 @@ import { Entity, getComponentValue } from "@dojoengine/recs";
 import { useGameContext } from "./GameContext";
 import { ErrorWithShortMessage } from "./CustomTypes";
 import Modal from '@mui/material/Modal';
-import { useDojo } from "./DojoContext";
+import { useDojo } from "./dojo/useDojo";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 
 type SpawnModalProps = {
@@ -26,7 +26,7 @@ const SpawnModal: React.FC<SpawnModalProps> = ({
 
   const {
     setup: {
-      components: { Player },
+      contractComponents: { Player },
       systemCalls: { spawn },
     },
     account: { 

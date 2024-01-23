@@ -4,7 +4,7 @@ import { useEntityQuery } from "@dojoengine/react";
 import { GameMap } from "./GameMap";
 import { useKeyboardMovement } from "./useKeyboardMovement";
 import { useGameContext } from "./GameContext";
-import { useDojo } from "./DojoContext";
+import { useDojo } from "./dojo/useDojo";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { ErrorWithShortMessage } from "./CustomTypes";
 
@@ -19,7 +19,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
 
   const {
     setup: {
-      components: { Position, Player, Alive },
+      contractComponents: { Position, Player, Alive },
       systemCalls: { move },
     },
     account: { account },

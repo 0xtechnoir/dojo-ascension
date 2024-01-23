@@ -6,7 +6,7 @@ import ActivityLog from "./ActivityLog";
 import SpawnModal from "./SpawnModal";
 import LeaveGameModal from "./LeaveGameModal";
 import RulesModal from "./RulesModal";
-import { useDojo } from "./DojoContext";
+import { useDojo } from "./dojo/useDojo";
 import { useGameContext } from "./GameContext";
 import { extractErrorMessage } from "./utils";
 import { useEntityQuery } from "@dojoengine/react";
@@ -30,7 +30,7 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
 
   const {
     setup: {
-      components: { Player, GameSession },
+      contractComponents: { Player, GameSession },
       systemCalls: { startMatch },
     },
     account: { account },
@@ -81,13 +81,12 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
 
   const start = async () => {
     const playersSpawned = allPlayers.length;
-    const startTime = Date.now();
     if (!gameId) {
       throw new Error("No game ID found");
     }
     try {
       console.log("Account address [GameBoardView.tsx - start()]: ", account.address);
-      await startMatch(account, gameId, playersSpawned, startTime);
+      await startMatch(account, gameId, playersSpawned);
     } catch (error: any) {
       if (error instanceof Error) {
         const message = extractErrorMessage(error.message);

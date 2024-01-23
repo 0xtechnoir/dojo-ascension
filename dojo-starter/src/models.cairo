@@ -1,4 +1,5 @@
 use starknet::ContractAddress;
+use debug::PrintTrait;
 
 #[derive(Serde, Copy, Drop, Introspect)]
 enum Direction {
@@ -32,6 +33,22 @@ struct GameData {
     board_height: u32,
     number_of_players: u8,
     available_ids: u256, // Packed u8s?
+}
+
+// Structure representing a player's ID with a ContractAddress
+#[derive(Model, Copy, Drop, Serde)]
+struct PlayerID {
+    #[key]
+    player: ContractAddress,
+    id: u8,
+}
+
+// Structure linking a player's ID to their ContractAddress
+#[derive(Model, Copy, Drop, Serde)]
+struct PlayerAddress {
+    #[key]
+    id: u8,
+    player: ContractAddress,
 }
 
 #[derive(Serde, Drop, Copy, PartialEq, Introspect)]
@@ -157,6 +174,27 @@ struct Position {
     player: ContractAddress,
     game_id: felt252,
     vec: Vec2,
+}
+
+impl PrintVec2Position of PrintTrait<Vec2> {
+    fn print(self: Vec2) {
+        let y: u32 = self.y.into();
+        let x: u32 = self.x.into();
+        'y position: '.print();
+        y.print();
+        'x position: '.print();
+        x.print();
+    }
+}
+
+// Structure to represent a player's position with unique keys and an ID
+#[derive(Model, Copy, Drop, Serde)]
+struct PlayerAtPosition {
+    #[key]
+    x: u8,
+    #[key]
+    y: u8,
+    id: u8,
 }
 
 trait Vec2Trait {

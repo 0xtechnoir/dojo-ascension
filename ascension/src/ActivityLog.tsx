@@ -1,6 +1,6 @@
 import { request, gql } from "graphql-request";
 import { Component } from "@dojoengine/recs";
-import { useDojo } from "./DojoContext";
+import { useDojo } from "./dojo/useDojo";
 import { LogMessage } from "./CustomTypes";
 import { formatDate, decodeComponent } from "./utils";
 import { useGameContext } from "./GameContext";
@@ -41,7 +41,7 @@ const ActivityLog = () => {
   const { playerInGameId } = useGameContext();
   const {
     setup: {
-      components: { PlayerSpawned, GameStarted },
+      clientComponents: { PlayerSpawned, GameStarted },
     },
   } = useDojo();
   const [mappedLogs, setMappedLogs] = useState<LogMessage[]>([]);

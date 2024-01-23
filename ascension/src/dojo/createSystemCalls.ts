@@ -1,4 +1,4 @@
-import { SetupNetworkResult } from "./setupNetwork";
+// import { SetupNetworkResult } from "./setupNetwork";
 import { Account } from "starknet";
 import { Entity, getComponentValue } from "@dojoengine/recs";
 import { uuid } from "@latticexyz/utils";
@@ -13,6 +13,10 @@ import {
   RejectedTransactionReceiptResponse,
   RevertedTransactionReceiptResponse,
 } from "starknet";
+import type { IWorld } from "../generated/generated";
+import { defineContractComponents } from "./contractComponents";
+import { BigNumberish } from "starknet";
+
 
 export type SystemCalls = ReturnType<typeof createSystemCalls>;
 
@@ -22,26 +26,29 @@ export type Vec2 = {
   y: number;
 };
 
+export type ContractComponents = Awaited<
+    ReturnType<typeof defineContractComponents>
+>;
+
 export function createSystemCalls(
-  { execute, contractComponents }: SetupNetworkResult,
+  { client }: { client: IWorld },
+  contractComponents: ContractComponents,
   { Position, Player, GameSession }: ClientComponents
 ) {
-  const spawn = async (account: Account, username: string, gameId: bigint) => {
+  const spawn = async (account: Account, username: string, gameId: BigNumberish) => {
     const encodedUsername: string = shortString.encodeShortString(username);
     const timestamp = Date.now();
     const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
     const playerId = uuid();
     Player.addOverride(playerId, {
       entity: entityId,
-      value: { gameId: gameId },
+      value: { gameId: BigInt(gameId) },
     });
 
     try {
-      const { transaction_hash } = await execute(account, "actions", "spawn", [
-        timestamp,
-        encodedUsername,
-        gameId,
-      ]);
+      const { transaction_hash } = await client.actions.spawn({
+        account, timestamp, username, gameId
+      });
 
       setComponentsFromEvents(
         contractComponents,
@@ -63,16 +70,16 @@ export function createSystemCalls(
     account: Account,
     gameId: number,
     playersSpawned: number,
-    startTime: number
-  ) => {
+    ) => {
     let tx;
     let receipt;
+    const startTime = BigInt(Date.now());
     try {
-      tx = await execute(account!, "actions", "startMatch", [
-        BigInt(gameId),
-        playersSpawned,
-        BigInt(startTime),
-      ]);
+      tx = await client.actions.startMatch({
+        account, gameId, playersSpawned, startTime
+      });
+
+
       receipt = await account!.waitForTransaction(tx.transaction_hash, {
         retryInterval: 100,
       });
@@ -133,13 +140,10 @@ export function createSystemCalls(
 
     let tx, receipt;
     try {
-      const bigIntTimestamp = BigInt(Date.now());
-      tx = await execute(account, "actions", "move", [
-        bigIntTimestamp,
-        deltaX,
-        deltaY,
-        BigInt(gameId),
-      ]);
+      const timestamp = BigInt(Date.now());
+      tx = await client.actions.move({
+        account, timestamp, deltaX, deltaY, gameId
+      });
       receipt = await account!.waitForTransaction(tx.transaction_hash, {
         retryInterval: 100,
       });

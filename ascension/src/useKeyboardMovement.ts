@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useDojo, useDojoAccount } from "./DojoContext";
+import { useDojo } from "./dojo/useDojo";
 import { ErrorWithShortMessage } from "./CustomTypes";
 import { useGameContext } from "./GameContext";
 
@@ -9,9 +9,10 @@ export const useKeyboardMovement = () => {
     setup: {
         systemCalls: { move }, 
     },
+    account: {
+      account,
+    },
   } = useDojo();
-
-  const { account } = useDojoAccount();
 
   const [moveMessage, setMoveMessage] = useState<string>("");
   const { gameId } = useGameContext();

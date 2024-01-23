@@ -1,7 +1,7 @@
 import React from "react";
 import { Entity } from "@latticexyz/recs";
 import { Player } from "./Player";
-import { useDojo } from "./DojoContext";
+import { useDojo } from "./dojo/useDojo";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 
 type PlayersListProps = {
@@ -12,7 +12,7 @@ export const PlayersList: React.FC<PlayersListProps> = ({ players }) => {
 
   const {
     setup: {
-        components: { Moves, Position, Range },
+        contractComponents: { Moves, Position, Range },
     },
     account: { 
       account, 

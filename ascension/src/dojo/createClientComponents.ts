@@ -1,11 +1,17 @@
 import { overridableComponent } from "@dojoengine/recs";
-import { SetupNetworkResult } from "./setupNetwork";
+import { defineContractComponents } from "./contractComponents";
+
+export type ContractComponents = Awaited<
+    ReturnType<typeof defineContractComponents>
+>;
 
 export type ClientComponents = ReturnType<typeof createClientComponents>;
 
 export function createClientComponents({
     contractComponents,
-}: SetupNetworkResult) {
+}: {
+    contractComponents: ContractComponents;
+}) {
     return {
         ...contractComponents,
         Position: overridableComponent(contractComponents.Position),

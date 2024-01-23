@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useGameContext } from "./GameContext";
 import { useEntityQuery } from "@dojoengine/react";
 import { getComponentValue, Has, Entity } from "@dojoengine/recs";
-import { useDojo, useDojoAccount } from "./DojoContext";
+import { useDojo } from "./dojo/useDojo";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 
 interface LobbyProps {
@@ -19,20 +19,20 @@ const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
 
   const {
     setup: {
-      components: { GameSession, Player },
+      contractComponents: { GameSession, Player },
+    },
+    account: { 
+      account,
+      create, 
+      select, 
+      applyFromClipboard,
+      copyToClipboard,
+      isDeploying,
+      list,
+      clear,
     },
   } = useDojo();
-  const { 
-    account, 
-    create, 
-    select, 
-    applyFromClipboard,
-    copyToClipboard,
-    isDeploying,
-    list,
-    clear,
-   } = useDojoAccount()
-
+ 
   useEffect(() => {
     const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
     const id = getComponentValue(Player, entityId)?.gameId;
@@ -86,10 +86,8 @@ const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
   };
 
   const createBurner = async () => {
-    const account = await create();
-    console.log("Account address [Lobby.tsx - createBurner()]: ", account.address);
-    const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-    console.log("entityId [Lobby.tsx - createBurner()]: ", entityId);
+    const account = create();
+    console.log("Account address [Lobby.tsx - createBurner()]: ", account);
   };
 
   const selectBurner = (address: string) => {

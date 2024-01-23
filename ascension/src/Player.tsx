@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 // import { useMUD } from "./MUDContext";
-import { useDojo } from "./DojoContext";
+import { useDojo } from "./dojo/useDojo";
 import { useComponentValue, useEntityQuery } from "@dojoengine/react";
 // import { singletonEntity } from "@latticexyz/store-sync/recs";
 import { ActionButton } from "./ActionButton";
@@ -55,7 +55,7 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
 
   const {
     setup: {
-      components: { 
+      contractComponents: { 
         Health,
         Range,
         ActionPoint,
@@ -143,7 +143,7 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
     for (let i = 0; i < gameSessions.length; i++) {
       const gameSession = gameSessions[i];
       const rec = getComponentValue(GameSession, gameSession);
-      if (rec?.gameId === gameId) {
+      if (rec && rec.gameId === BigInt(gameId!)) {
         gameIsLive = rec?.isLive || false;
       }
     }
