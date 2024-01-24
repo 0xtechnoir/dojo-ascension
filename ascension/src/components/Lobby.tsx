@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { useGameContext } from "./GameContext";
+import { useGameContext } from "../hooks/GameContext";
 import { useEntityQuery } from "@dojoengine/react";
 import { getComponentValue, Has, Entity } from "@dojoengine/recs";
-import { useDojo } from "./dojo/useDojo";
+import { useDojo } from "../dojo/useDojo";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 
 interface LobbyProps {
   setShowGameBoard: React.Dispatch<React.SetStateAction<boolean>>;
-  currentGameID: number | null;
 }
 
-const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
+const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard }) => {
   const { setGameId, displayMessage, setPlayerInGameId, playerInGameId } = useGameContext();
   const [clipboardStatus, setClipboardStatus] = useState({
     message: "",
@@ -49,7 +48,6 @@ const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
     }
   }, [clipboardStatus.message]);
 
-
   const [inputGameID, setInputGameID] = useState<number | null>(null);
   const allGameSessions = useEntityQuery([Has(GameSession)]);
   const allGameIds = allGameSessions.map((entity) => {
@@ -85,19 +83,6 @@ const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
     }
   };
 
-  const createBurner = async () => {
-    const account = create();
-    console.log("Account address [Lobby.tsx - createBurner()]: ", account);
-  };
-
-  const selectBurner = (address: string) => {
-    console.log("Lobby Burner Address: ", address);
-    select(address);
-    // check if entity is already in a game
-    const entityId = getEntityIdFromKeys([BigInt(address)]) as Entity;
-    const currentGameID = getComponentValue(Player, entityId)?.gameId;
-  };
-
   const handleRestoreBurners = async () => {
     try {
       await applyFromClipboard();
@@ -117,7 +102,7 @@ const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
     <div className="flex items-center justify-center min-h-screen">
       <div className="p-8 rounded shadow-md w-120 text-white bg-slate-900 border border-gray-500">
         <h1 className="text-3xl font-bold mb-4">Welcome to Ascension</h1>
-        <button className="btn-sci-fi" onClick={createBurner}>
+        <button className="btn-sci-fi" onClick={create}>
           {isDeploying ? "deploying burner" : "create burner"}
         </button>
         {list().length > 0 && (
@@ -142,7 +127,7 @@ const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard, currentGameID }) => {
               select burner:{" "}
               <select
                 value={account ? account.address : ""}
-                onChange={(e) => selectBurner(e.target.value)}
+                onChange={(e) => select(e.target.value)}
                 className="text-black"
               >
                 {list().map((account, index) => {

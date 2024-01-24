@@ -1,8 +1,8 @@
 import { useComponentValue } from "@dojoengine/react";
 import { Entity, getComponentValueStrict } from "@dojoengine/recs";
 import { twMerge } from "tailwind-merge";
-import { useDojo } from "./dojo/useDojo";
-import { useGameContext } from "./GameContext";
+import { useDojo } from "../dojo/useDojo";
+import { useGameContext } from "../hooks/GameContext";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 
 type Position = {
@@ -38,15 +38,9 @@ export const GameMap = ({
   players,
   // onRightClickPlayer,
 }: Props) => {
-  
-  // const {
-  //   network: { playerEntity },
-  //   components: { Range, Position },
-  // } = useMUD();
-
   const {
     setup: {
-        contractComponents: { Moves, Position, Range },
+        contractComponents: { Position, Range },
     },
     account: { 
       account, 

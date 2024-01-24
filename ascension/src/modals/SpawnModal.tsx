@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Entity, getComponentValue } from "@dojoengine/recs";
-import { useGameContext } from "./GameContext";
-import { ErrorWithShortMessage } from "./CustomTypes";
+import { useGameContext } from "../hooks/GameContext";
+import { ErrorWithShortMessage } from "../CustomTypes";
 import Modal from '@mui/material/Modal';
-import { useDojo } from "./dojo/useDojo";
+import { useDojo } from "../dojo/useDojo";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 
 type SpawnModalProps = {
@@ -61,7 +61,6 @@ const SpawnModal: React.FC<SpawnModalProps> = ({
       if (!gameId) {
         throw new Error("No game ID found");
       }
-      console.log("Account address [SpawnModal.tsx - onSubmit()]: ", account.address);
       await spawn(account, sanitizedUsername, BigInt(gameId));
       setShowSpawnButton(false);
       const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;

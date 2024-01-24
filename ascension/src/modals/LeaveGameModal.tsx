@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import Modal from '@mui/material/Modal';
-import { useGameContext } from "./GameContext";
-import { useDojo } from "./dojo/useDojo";
-import { ErrorWithShortMessage } from "./CustomTypes";
+import { useGameContext } from "../hooks/GameContext";
+import { useDojo } from "../dojo/useDojo";
+import { ErrorWithShortMessage } from "../CustomTypes";
 
 type LeaveGameModalProps = {
   showLeaveGameModal: boolean;

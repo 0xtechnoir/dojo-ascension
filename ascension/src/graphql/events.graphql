@@ -1,7 +1,0 @@
-subscription EventsSubscription {
-  eventEmitted {
-    id
-    keys
-    data
-  }
-}

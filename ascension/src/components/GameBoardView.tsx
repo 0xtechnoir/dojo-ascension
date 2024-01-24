@@ -3,12 +3,12 @@ import React from "react";
 import { PlayersList } from "./PlayersList";
 import { GameBoard } from "./GameBoard";
 import ActivityLog from "./ActivityLog";
-import SpawnModal from "./SpawnModal";
-import LeaveGameModal from "./LeaveGameModal";
-import RulesModal from "./RulesModal";
-import { useDojo } from "./dojo/useDojo";
-import { useGameContext } from "./GameContext";
-import { extractErrorMessage } from "./utils";
+import SpawnModal from "../modals/SpawnModal";
+import LeaveGameModal from "../modals/LeaveGameModal";
+import RulesModal from "../modals/RulesModal";
+import { useDojo } from "../dojo/useDojo";
+import { useGameContext } from "../hooks/GameContext";
+import { extractErrorMessage } from "../utils";
 import { useEntityQuery } from "@dojoengine/react";
 import {
   Has,

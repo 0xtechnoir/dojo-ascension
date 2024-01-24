@@ -2,11 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { Has, HasValue, Entity, getComponentValue } from "@dojoengine/recs";
 import { useEntityQuery } from "@dojoengine/react";
 import { GameMap } from "./GameMap";
-import { useKeyboardMovement } from "./useKeyboardMovement";
-import { useGameContext } from "./GameContext";
-import { useDojo } from "./dojo/useDojo";
+import { useKeyboardMovement } from "../hooks/useKeyboardMovement";
+import { useGameContext } from "../hooks/GameContext";
+import { useDojo } from "../dojo/useDojo";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
-import { ErrorWithShortMessage } from "./CustomTypes";
+import { ErrorWithShortMessage } from "../CustomTypes";
 
 interface GameBoardProps {
   players: Entity[];
@@ -15,26 +15,36 @@ interface GameBoardProps {
 export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
   const [showUsernameInput, setShowUsernameInput] = useState(false);
   const { displayMessage, gameId } = useGameContext();
+  const [movementCount, setMovementCount] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null); // Create a ref for the container
 
   const {
     setup: {
-      contractComponents: { Position, Player, Alive },
+      contractComponents: { Position, Player, Alive, PlayerId },
       systemCalls: { move },
     },
     account: { account },
   } = useDojo();
 
-  const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-
+  const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;  
+  
   const deadPlayers = useEntityQuery([
     Has(Player),
     HasValue(Alive, { value: false }),
   ]);
+  
+  
   let mappedPlayers;
   if (playerEntity) {
     mappedPlayers = players.map((entity) => {
-      const position = getComponentValue(Position, entity);
+
+      const playerId = getComponentValue(PlayerId, entity)?.id;
+      const entityKey = getEntityIdFromKeys([
+        BigInt(playerId?.toString() || "0"),
+        gameId ? BigInt(gameId) : BigInt(0),
+      ]);  
+      const position = getComponentValue(Position, entityKey);
+
       let emoji = !deadPlayers.includes(entity)
         ? entity === playerEntity
           ? "🚀"
@@ -43,8 +53,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
       if (position) {
         return {
           entity,
-          x: position.vec.x,
-          y: position.vec.y,
+          x: position.x,
+          y: position.y,
           emoji: emoji,
         };
       } else {
@@ -70,45 +80,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
     };
   }, [showUsernameInput]);
 
-  // const { moveMessage, clearMoveMessage } = useKeyboardMovement();
-  const [moveMessage, setMoveMessage] = useState<string>("");
-
-  const clearMoveMessage = () => {
-    setMoveMessage("");
+  const handleMovement = () => {
+    setMovementCount(prevCount => prevCount + 1); // Increment to trigger re-render
   };
-
-  useEffect(() => {
-    const listener = async (e: KeyboardEvent) => {
-      try {
-        if (gameId) {
-          if (e.key === "ArrowUp") {
-            await move(account, 0, -1, gameId);
-          }
-          if (e.key === "ArrowDown") {
-            await move(account, 0, 1, gameId);
-          }
-          if (e.key === "ArrowLeft") {
-            await move(account, -1, 0, gameId);
-          }
-          if (e.key === "ArrowRight") {
-            await move(account, 1, 0, gameId);
-          }
-        }
-      } catch (error) {
-        console.log("catch block triggerd. Error: ", error);
-        if (typeof error === "object" && error !== null) {
-          const message = (error as ErrorWithShortMessage).cause.data.args[0];
-          setMoveMessage(message);
-        } else {
-          console.error(error);
-        }
-      }
-    };
-
-    window.addEventListener("keydown", listener);
-    return () => window.removeEventListener("keydown", listener);
-  }, [move]);
-
+  const { moveMessage, clearMoveMessage } = useKeyboardMovement(handleMovement);
+  
   useEffect(() => {
     if (moveMessage) {
       // When setting the error message, add the new message to the existing array instead of replacing it.
@@ -172,3 +148,4 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
     </div>
   );
 };
+

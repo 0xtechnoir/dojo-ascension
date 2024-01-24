@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useDojo } from "./dojo/useDojo";
-import { ErrorWithShortMessage } from "./CustomTypes";
+import { useDojo } from "../dojo/useDojo";
+import { ErrorWithShortMessage } from "../CustomTypes";
 import { useGameContext } from "./GameContext";
+import { Direction } from "../utils";
 
-export const useKeyboardMovement = () => {
+export const useKeyboardMovement = (onMove: () => void) => {
 
   const {
     setup: {
@@ -23,20 +24,27 @@ export const useKeyboardMovement = () => {
 
   useEffect(() => {
     const listener = async (e: KeyboardEvent) => {
-      console.log("moveby account address: ", account.address)
       try {
         if (gameId) {
-          if (e.key === "ArrowUp") {
-            await move(account, 0, -1, gameId);
+          let moved = false;
+          if (e.key === "ArrowUp" || e.key === "w") {
+            await move(account, gameId, Direction.Up );
+            moved = true;
           }
-          if (e.key === "ArrowDown") {
-            await move(account, 0, 1, gameId);
+          if (e.key === "ArrowDown" || e.key === "s") {
+            await move(account, gameId, Direction.Down);
+            moved = true;
           }
-          if (e.key === "ArrowLeft") {
-            await move(account, -1, 0, gameId);
+          if (e.key === "ArrowLeft" || e.key === "a") {
+            await move(account, gameId, Direction.Left);
+            moved = true;
           }
-          if (e.key === "ArrowRight") {
-            await move(account, 1, 0, gameId);
+          if (e.key === "ArrowRight" || e.key === "d") {
+            await move(account, gameId, Direction.Right);
+            moved = true;
+          }
+          if (moved) {
+            onMove(); // Call the callback when a move is made
           }
         }
       } catch (error) {
@@ -52,7 +60,7 @@ export const useKeyboardMovement = () => {
 
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, [move]);
+  }, [move, onMove]);
 
   return { moveMessage, clearMoveMessage };
 };

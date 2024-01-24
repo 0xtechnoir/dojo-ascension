@@ -6,7 +6,7 @@ import App from "./App.tsx";
 import "./index.css";
 import { setup } from "./dojo/setup";
 import { DojoProvider } from "./dojo/DojoContext.tsx";
-import { GameProvider } from "./GameContext";
+import { GameProvider } from "./hooks/GameContext.tsx";
 import { dojoConfig } from "./dojo/dojoConfig";
 
 async function init() {

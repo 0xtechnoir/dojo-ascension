@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
-// import { useMUD } from "./MUDContext";
-import { useDojo } from "./dojo/useDojo";
+import { useDojo } from "../dojo/useDojo";
 import { useComponentValue, useEntityQuery } from "@dojoengine/react";
-// import { singletonEntity } from "@latticexyz/store-sync/recs";
 import { ActionButton } from "./ActionButton";
-import { useGameContext } from "./GameContext";
+import { useGameContext } from "../hooks/GameContext";
 import { Entity, Has, getComponentValue } from "@dojoengine/recs";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
+import { shortString } from "starknet";
 
 type PlayerProps = {
   entity: Entity;
@@ -29,29 +28,6 @@ const flashRed = {
 };
 
 export const Player: React.FC<PlayerProps> = ({ entity }) => {
-  // const {
-  //   components: {
-  //     Health,
-  //     Range,
-  //     ActionPoint,
-  //     VotingPoint,
-  //     Username,
-  //     Alive,
-  //     LastActionPointClaim,
-  //     LastVotingPointClaim,
-  //     ClaimInterval,
-  //     GameSession,
-  //   },
-  //   systemCalls: {
-  //     sendActionPoint,
-  //     attack,
-  //     increaseRange,
-  //     claimActionPoint,
-  //     vote,
-  //     claimVotingPoint,
-  //   },
-  //   network: { playerEntity },
-  // } = useMUD();
 
   const {
     setup: {
@@ -66,6 +42,7 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
         LastVotingPointClaim,
         ClaimInterval,
         GameSession,
+        PlayerId,
       },
       systemCalls: {
         sendActionPoint,
@@ -81,13 +58,21 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
     },
   } = useDojo();
 
-  const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-
   const { gameId, highlightedPlayer, setHighlightedPlayer } = useGameContext();
-  const username = useComponentValue(Username, entity)?.value?.toString() || "";
+  
+  const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
+  
+  // generate entity key from player_id and game_id
+  const playerId = getComponentValue(PlayerId, entity)?.id;
+  const entityKey = getEntityIdFromKeys([
+    BigInt(playerId?.toString() || "0"),
+    gameId ? BigInt(gameId) : BigInt(0),
+  ]);  
+
+  const username = useComponentValue(Username, entityKey)?.value?.toString() || "";
   const health = useComponentValue(Health, entity)?.value || 0;
   const range = useComponentValue(Range, entity)?.value || 0;
-  const ap = useComponentValue(ActionPoint, entity)?.value || 0;
+  const ap = useComponentValue(ActionPoint, entityKey)?.value || 0;
   const vp = useComponentValue(VotingPoint, entity)?.value || 0;
   const alive = useComponentValue(Alive, entity)?.value || false;
   const playerIsAlive = useComponentValue(Alive, playerEntity)?.value || false;
@@ -219,7 +204,7 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
           onClick={() => setHighlightedPlayer(entity)}
         >
           <p>
-            Name: {username} (You {alive ? "🚀" : "💀"})
+            Name: {shortString.decodeShortString(username)} (You {alive ? "🚀" : "💀"})
           </p>
           <p>Status: {alive ? `Alive` : `Dead`}</p>
           {alive ? (
@@ -315,7 +300,7 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
         }`}
         onClick={() => setHighlightedPlayer(entity)}
       >
-        <p>Name: {username} 🛸</p>
+        <p>Name: {shortString.decodeShortString(username)} 🛸</p>
         <p>Status: {alive ? `Alive` : `Dead`}</p>
         {alive ? (
           <>

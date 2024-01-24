@@ -16,15 +16,9 @@ import {
 import type { IWorld } from "../generated/generated";
 import { defineContractComponents } from "./contractComponents";
 import { BigNumberish } from "starknet";
-
+import { Direction, updatePositionWithDirection } from "../utils/index"; 
 
 export type SystemCalls = ReturnType<typeof createSystemCalls>;
-
-// define custom struct type called Vec2 that has two 32-bit integer coordinates
-export type Vec2 = {
-  x: number;
-  y: number;
-};
 
 export type ContractComponents = Awaited<
     ReturnType<typeof defineContractComponents>
@@ -33,7 +27,7 @@ export type ContractComponents = Awaited<
 export function createSystemCalls(
   { client }: { client: IWorld },
   contractComponents: ContractComponents,
-  { Position, Player, GameSession }: ClientComponents
+  { Position, Player, GameSession, PlayerId }: ClientComponents
 ) {
   const spawn = async (account: Account, username: string, gameId: BigNumberish) => {
     const encodedUsername: string = shortString.encodeShortString(username);
@@ -59,7 +53,7 @@ export function createSystemCalls(
         )
       );
     } catch (e) {
-      console.log(e);
+      console.log("Error Caught in Spawn Function: ", e);
       Player.removeOverride(playerId);
     } finally {
       Player.removeOverride(playerId);
@@ -105,9 +99,8 @@ export function createSystemCalls(
 
   const move = async (
     account: Account,
-    deltaX: number,
-    deltaY: number,
-    gameId: number
+    gameId: number,
+    dir: Direction,
   ) => {
     const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
 
@@ -118,23 +111,36 @@ export function createSystemCalls(
     console.log("Entity ID [createSystemCalls.ts - move()]: ", entityId);
 
     // get players current position
-    const playerPosition = getComponentValue(Position, entityId);
-    if (!playerPosition) {
+
+    // const playerPosition = getComponentValue(Position, entityId);
+    const playerId = getComponentValue(PlayerId, entityId)?.id;
+    const posEntity = getEntityIdFromKeys([
+      BigInt(playerId?.toString() || "0"),
+      gameId ? BigInt(gameId) : BigInt(0),
+    ]);
+    const position = getComponentValue(Position, posEntity);
+
+    const new_position = updatePositionWithDirection(
+      dir,
+      position || { x: 0, y: 0 }
+  );
+
+    if (!position) {
       console.warn("cannot moveBy without a player position, not yet spawned?");
       return;
     }
-    const { x, y } = playerPosition.vec as Vec2;
+    const { x, y } = position;
+    console.log("x: ", x);
+    console.log("y: ", y);
 
     const positionId = uuid();
     Position.addOverride(positionId, {
       entity: entityId,
       value: {
-        player: BigInt(entityId),
+        id: playerId,
         game_id: BigInt(gameId),
-        vec: {
-          x: x + deltaX,
-          y: y + deltaY,
-        },
+        x: new_position.x,
+        y: new_position.y,
       },
     });
 
@@ -142,7 +148,7 @@ export function createSystemCalls(
     try {
       const timestamp = BigInt(Date.now());
       tx = await client.actions.move({
-        account, timestamp, deltaX, deltaY, gameId
+        account, timestamp, gameId, dir
       });
       receipt = await account!.waitForTransaction(tx.transaction_hash, {
         retryInterval: 100,

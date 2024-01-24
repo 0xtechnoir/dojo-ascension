@@ -37,7 +37,7 @@ struct GameData {
 
 // Structure representing a player's ID with a ContractAddress
 #[derive(Model, Copy, Drop, Serde)]
-struct PlayerID {
+struct PlayerId {
     #[key]
     player: ContractAddress,
     id: u8,
@@ -51,27 +51,44 @@ struct PlayerAddress {
     player: ContractAddress,
 }
 
-#[derive(Serde, Drop, Copy, PartialEq, Introspect)]
-enum PieceType {
-    Player: (),
-    None: ()
+// Structure representing a position with an ID, and x, y coordinates
+#[derive(Model, Copy, Drop, Serde)]
+struct Position {
+    #[key]
+    id: u8,
+    #[key]
+    game_id: felt252,
+    x: u8,
+    y: u8,
+}
+
+// Structure to represent a player's position with unique keys and an ID
+#[derive(Model, Copy, Drop, Serde)]
+struct PlayerAtPosition {
+    #[key]
+    x: u8,
+    #[key]
+    y: u8,
+    #[key]
+    game_id: felt252,
+    id: u8,
 }
 
 #[derive(Model, Drop, Serde)]
 struct Square {
     #[key]
-    game_id: felt252,
+    x: u8,
     #[key]
-    vec: Vec2,
+    y: u8,
+    #[key]
+    game_id: felt252,
     piece: PieceType,
 }
 
-#[derive(Model, Drop, Serde)]
-struct Moves {
-    #[key]
-    player: ContractAddress,
-    remaining: u8,
-    last_direction: Direction
+#[derive(Serde, Drop, Copy, PartialEq, Introspect)]
+enum PieceType {
+    Player: (),
+    None: ()
 }
 
 #[derive(Model, Drop, Serde)]
@@ -91,7 +108,9 @@ struct InGame {
 #[derive(Model, Drop, Serde)]
 struct ActionPoint {
     #[key]
-    player: ContractAddress,
+    id: u8,
+    #[key]
+    game_id: felt252,
     value: u8,
 }
 
@@ -105,7 +124,9 @@ struct VotingPoint {
 #[derive(Model, Drop, Serde)]
 struct Username {
     #[key]
-    player: ContractAddress,
+    id: u8,
+    #[key]
+    game_id: felt252,
     value: felt252,
 }
 
@@ -168,18 +189,20 @@ struct Vec2 {
     y: u32
 }
 
-#[derive(Model, Copy, Drop, Serde)]
-struct Position {
-    #[key]
-    player: ContractAddress,
-    game_id: felt252,
-    vec: Vec2,
-}
+// #[derive(Model, Copy, Drop, Serde)]
+// struct Position {
+//     #[key]
+//     player: ContractAddress,
+//     game_id: felt252,
+//     vec: Vec2,
+// }
 
-impl PrintVec2Position of PrintTrait<Vec2> {
-    fn print(self: Vec2) {
-        let y: u32 = self.y.into();
-        let x: u32 = self.x.into();
+
+
+impl PrintPosition of PrintTrait<Position> {
+    fn print(self: Position) {
+        let y: u8 = self.y;
+        let x: u8 = self.x;
         'y position: '.print();
         y.print();
         'x position: '.print();
@@ -187,15 +210,7 @@ impl PrintVec2Position of PrintTrait<Vec2> {
     }
 }
 
-// Structure to represent a player's position with unique keys and an ID
-#[derive(Model, Copy, Drop, Serde)]
-struct PlayerAtPosition {
-    #[key]
-    x: u8,
-    #[key]
-    y: u8,
-    id: u8,
-}
+
 
 trait Vec2Trait {
     fn is_zero(self: Vec2) -> bool;

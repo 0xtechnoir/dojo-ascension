@@ -3,6 +3,7 @@
 import { Account } from "starknet";
 import { DojoProvider } from "@dojoengine/core";
 import { BigNumberish } from "starknet";
+import { Direction } from "../utils/index";
 
 export type IWorld = Awaited<ReturnType<typeof setupWorld>>;
 
@@ -51,22 +52,20 @@ export async function setupWorld(provider: DojoProvider) {
         const move = async ({
             account,
             timestamp,
-            deltaX,
-            deltaY,
             gameId,
+            dir,
         }: {
             account: Account;
             timestamp: BigNumberish;
-            deltaX: number,
-            deltaY: number,
-            gameId: BigNumberish;
+            gameId: BigNumberish,
+            dir: Direction;
         }) => {
             try {
                 return await provider.execute(
                     account, 
                     contract_name, 
                     "move", 
-                    [timestamp, deltaX, deltaY, gameId]
+                    [timestamp, gameId, dir]
                 );
             } catch (error) {
                 console.error("Error executing move:", error);

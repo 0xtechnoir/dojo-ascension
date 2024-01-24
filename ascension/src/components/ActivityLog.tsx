@@ -1,9 +1,9 @@
 import { request, gql } from "graphql-request";
 import { Component } from "@dojoengine/recs";
-import { useDojo } from "./dojo/useDojo";
-import { LogMessage } from "./CustomTypes";
-import { formatDate, decodeComponent } from "./utils";
-import { useGameContext } from "./GameContext";
+import { useDojo } from "../dojo/useDojo";
+import { LogMessage } from "../CustomTypes";
+import { formatDate, decodeComponent } from "../utils";
+import { useGameContext } from "../hooks/GameContext";
 import { useEffect, useState } from "react";
 import { shortString } from "starknet";
 
