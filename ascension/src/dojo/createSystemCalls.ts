@@ -201,8 +201,33 @@ export function createSystemCalls(
     };
   };
 
-  const claimActionPoint = async (gameId: number | null) => {
-    console.log("claimActionPoint");
+  const claimActionPoint = async (account: Account, gameId: BigNumberish) => {
+    const timestamp = Date.now();
+    let tx, receipt;
+    try {
+      tx = await client.actions.claimActionPoint({
+        account, timestamp, gameId
+      });
+      receipt = await account!.waitForTransaction(tx.transaction_hash, {
+        retryInterval: 100,
+      });
+      setComponentsFromEvents(contractComponents, getEvents(receipt));
+    } catch (e) {
+      console.log(e);
+    }
+
+    if (receipt && receipt.status === "REJECTED") {
+      throw Error(
+        (receipt as RejectedTransactionReceiptResponse)
+          .transaction_failure_reason.error_message
+      );
+    }
+    if (receipt && receipt.execution_status === "REVERTED") {
+      throw Error(
+        (receipt as RevertedTransactionReceiptResponse).revert_reason ||
+          "Transaction Reverted"
+      );
+    };
   };
 
   const vote = async (entity: Entity, gameId: number | null) => {

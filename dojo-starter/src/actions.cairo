@@ -13,6 +13,7 @@ trait IActions<TContractState> {
     fn move(self: @TContractState, timestamp: felt252, game_id: felt252, dir: dojo_examples::models::Direction);
     fn leaveGame(self: @TContractState, timeStamp: felt252, game_id: felt252);
     fn increaseRange(self: @TContractState, game_id: felt252, startTime: felt252);
+    fn claimActionPoint(self: @TContractState, game_id: felt252, timestamp: felt252);
 }
 
 // dojo decorator
@@ -21,7 +22,7 @@ mod actions {
     use starknet::{ContractAddress, get_caller_address};
     use dojo_examples::models::{
         Position, PlayerId, PlayerAddress, Direction, GameSession, PieceType, Square, Health, Range,
-        ActionPoint, Alive, Player, InGame, Username, GameData, GAME_DATA_KEY, PlayerAtPosition
+        ActionPoint, Alive, Player, InGame, Username, GameData, GAME_DATA_KEY, PlayerAtPosition, LastActionPointClaim
     };
     use dojo_examples::utils::next_position;
     use super::{
@@ -38,6 +39,7 @@ mod actions {
         PlayerSpawned: PlayerSpawned,
         PlayerMoved: PlayerMoved,
         RangeIncreased: RangeIncreased,
+        ActionPointClaimed: ActionPointClaimed,
     }
 
     // custom event structs
@@ -73,6 +75,13 @@ mod actions {
 
     #[derive(Drop, starknet::Event)]
     struct RangeIncreased {
+        timestamp: felt252,
+        gameId: felt252,
+        player: felt252,
+    }
+   
+    #[derive(Drop, starknet::Event)]
+    struct ActionPointClaimed {
         timestamp: felt252,
         gameId: felt252,
         player: felt252,
@@ -187,6 +196,8 @@ mod actions {
 
             // game data
             let mut game_data = get!(world, GAME_DATA_KEY, (GameData));
+            game_data.claim_interval = 30000;
+
 
             // Get the address of the current caller, possibly the player's address.
             let player = get_caller_address();          
@@ -317,9 +328,7 @@ mod actions {
             let player = get_caller_address();
             let player_id = get!(world, player, (PlayerId)).id;
             let username = get!(world, (player_id, game_id), (Username)).value;
-            // check game has started
             assert(get!(world, game_id, GameSession).isLive == true, 'Match not started');
-            // check player is alive
             assert(get!(world, (player_id, game_id), Alive).value == true, 'Player is dead');
             let range = get!(world, (player_id, game_id), Range).value;
             let action_points = get!(world, (player_id, game_id), ActionPoint).value;
@@ -328,6 +337,25 @@ mod actions {
             set!(world, Range { id: player_id, game_id: game_id, value: range + 1 });
             set!(world, ActionPoint { id: player_id, game_id: game_id, value: action_points - 1 });
             emit!(world, RangeIncreased { timestamp: startTime, gameId: game_id, player: username });
+        }
+        
+        fn claimActionPoint(self: @ContractState, game_id: felt252, timestamp: felt252) {
+            let world = self.world_dispatcher.read();
+            let player = get_caller_address();
+            let player_id = get!(world, player, (PlayerId)).id;
+            let username = get!(world, (player_id, game_id), (Username)).value;
+            // get claim interval from GameData
+            let claim_interval = get!(world, GAME_DATA_KEY, (GameData)).claim_interval;
+            let last_claimed = get!(world, (player_id, game_id), (LastActionPointClaim)).value;
+            // if lastClaimed is equal to 0 this is the first time they are claiming so we can skip the check
+            let elapsed_time: u256 = timestamp.into() - last_claimed.into();
+            if last_claimed != 0 {
+                assert(elapsed_time > claim_interval, 'Cannot claim yet');
+            }
+            set!(world, LastActionPointClaim { id: player_id, game_id: game_id, value: timestamp });
+            let current_action_points = get!(world, (player_id, game_id), (ActionPoint)).value;
+            set!(world, ActionPoint { id: player_id, game_id: game_id, value: current_action_points + 1 });
+            emit!(world, ActionPointClaimed { timestamp: timestamp, gameId: game_id, player: username });
         }
     }
 }

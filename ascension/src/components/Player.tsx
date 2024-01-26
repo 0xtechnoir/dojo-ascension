@@ -267,7 +267,7 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
                 />
                 <ActionButton
                   label={`Claim AP: ${timeUntilNextAPClaim}`}
-                  action={() => () => claimActionPoint(gameId!)}
+                  action={() => () => claimActionPoint(account, gameId!)}
                   buttonStyle={
                     timeUntilNextAPClaim === "Now!" ? "btn-cta" : "btn-sci-fi"
                   }

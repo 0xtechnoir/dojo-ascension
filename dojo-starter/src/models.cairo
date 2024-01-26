@@ -31,6 +31,7 @@ struct GameData {
     game: felt252, // Always 'game'
     board_width: u32,
     board_height: u32,
+    claim_interval: u256,
     number_of_players: u8,
     available_ids: u256, // Packed u8s?
 }
@@ -142,8 +143,10 @@ struct Username {
 #[derive(Model, Drop, Serde)]
 struct LastActionPointClaim {
     #[key]
-    player: ContractAddress,
-    value: u32,
+    id: u8,
+    #[key]
+    game_id: felt252,
+    value: felt252,
 }
 
 #[derive(Model, Drop, Serde)]

@@ -26,6 +26,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
           const actionToExecute = action();
           await actionToExecute();
         } catch (error) {
+          console.log(error);
           if (typeof error === "object" && error !== null) {
             const message = (error as ErrorWithShortMessage).cause.data.args[0];
             displayMessage(message);
