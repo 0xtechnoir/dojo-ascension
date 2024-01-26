@@ -30,7 +30,7 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
 
   const {
     setup: {
-      contractComponents: { Player, GameSession },
+      contractComponents: { Player, GameSession, InGame },
       systemCalls: { startMatch },
     },
     account: { account },
@@ -49,6 +49,7 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
   }, [playerInGameId]);
 
   const gameSessions = useEntityQuery([Has(GameSession)]);
+
   const allPlayers = useEntityQuery([
     Has(Player),
     HasValue(Player, {

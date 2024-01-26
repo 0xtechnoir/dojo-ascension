@@ -1,5 +1,5 @@
 import { useComponentValue } from "@dojoengine/react";
-import { Entity, getComponentValueStrict } from "@dojoengine/recs";
+import { Entity, getComponentValue } from "@dojoengine/recs";
 import { twMerge } from "tailwind-merge";
 import { useDojo } from "../dojo/useDojo";
 import { useGameContext } from "../hooks/GameContext";
@@ -40,16 +40,22 @@ export const GameMap = ({
 }: Props) => {
   const {
     setup: {
-        contractComponents: { Position, Range },
+        contractComponents: { Position, Range, PlayerId },
     },
     account: { 
       account, 
     },
   } = useDojo();
+  const { gameId, highlightedPlayer } = useGameContext();
 
   // entity id we are syncing
   const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-  const { highlightedPlayer } = useGameContext();
+  const playerId = getComponentValue(PlayerId, playerEntity)?.id;
+  const compositeEntityKey = getEntityIdFromKeys([
+    BigInt(playerId?.toString() || "0"),
+    gameId ? BigInt(gameId) : BigInt(0),
+  ]);  
+  
 
   // let highlightedPlayerPosition: Position | null = null;
   // if (highlightedPlayer) {
@@ -69,7 +75,7 @@ export const GameMap = ({
 
   const rows = new Array(width).fill(0).map((_, i) => i);
   const columns = new Array(height).fill(0).map((_, i) => i);
-  const shipRange = useComponentValue(Range, playerEntity)?.value;
+  const shipRange = useComponentValue(Range, compositeEntityKey)?.value;
   let playerPosition = players?.find((p) => p?.entity === playerEntity);
 
   return (

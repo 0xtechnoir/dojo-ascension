@@ -34,7 +34,7 @@ const LeaveGameModal: React.FC<LeaveGameModalProps> = ({
       if (!gameId) {
         throw new Error("No game ID found");
       }
-      await leaveGame(gameId);
+      await leaveGame(account, BigInt(gameId));
       setShowLeaveGameButton(false);
     } catch (error) {
       if (typeof error === "object" && error !== null) {

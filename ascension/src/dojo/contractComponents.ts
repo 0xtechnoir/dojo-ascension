@@ -20,11 +20,11 @@ export function defineContractComponents(world: World) {
 	  Alive: (() => {
 	    return defineComponent(
 	      world,
-	      { player: RecsType.BigInt, value: RecsType.Boolean },
+	      { id: RecsType.Number, game_id: RecsType.BigInt, value: RecsType.Boolean },
 	      {
 	        metadata: {
 	          name: "Alive",
-	          types: ["contractaddress","bool"],
+	          types: ["u8","felt252","bool"],
 	          customTypes: [],
 	        },
 	      }
@@ -72,11 +72,11 @@ export function defineContractComponents(world: World) {
 	  Health: (() => {
 	    return defineComponent(
 	      world,
-	      { player: RecsType.BigInt, value: RecsType.Number },
+	      { id: RecsType.Number, game_id: RecsType.BigInt, value: RecsType.Number },
 	      {
 	        metadata: {
 	          name: "Health",
-	          types: ["contractaddress","u8"],
+	          types: ["u8","felt252","u8"],
 	          customTypes: [],
 	        },
 	      }
@@ -85,7 +85,7 @@ export function defineContractComponents(world: World) {
 	  InGame: (() => {
 	    return defineComponent(
 	      world,
-	      { player: RecsType.BigInt, gameId: RecsType.BigInt },
+	      { player: RecsType.BigInt, game_id: RecsType.BigInt },
 	      {
 	        metadata: {
 	          name: "InGame",
@@ -189,11 +189,11 @@ export function defineContractComponents(world: World) {
 	  Range: (() => {
 	    return defineComponent(
 	      world,
-	      { player: RecsType.BigInt, value: RecsType.Number },
+	      { id: RecsType.Number, game_id: RecsType.BigInt, value: RecsType.Number },
 	      {
 	        metadata: {
 	          name: "Range",
-	          types: ["contractaddress","u32"],
+	          types: ["u8","felt252","u32"],
 	          customTypes: [],
 	        },
 	      }
@@ -215,11 +215,11 @@ export function defineContractComponents(world: World) {
 	  Username: (() => {
 	    return defineComponent(
 	      world,
-	      { id: RecsType.Number, value: RecsType.BigInt },
+	      { id: RecsType.Number, game_id: RecsType.BigInt, value: RecsType.BigInt },
 	      {
 	        metadata: {
 	          name: "Username",
-	          types: ["u8","felt252"],
+	          types: ["u8","felt252","felt252"],
 	          customTypes: [],
 	        },
 	      }
@@ -237,37 +237,6 @@ export function defineContractComponents(world: World) {
 	        },
 	      }
 	    );
-	  })(),
-	  PlayerSpawned: (() => {
-		return defineComponent(
-		  world,
-		  {
-			timestamp: RecsType.BigInt,
-			position: { x: RecsType.Number, y: RecsType.Number },
-			gameId: RecsType.BigInt,
-			player: RecsType.String,
-		  },
-		  {
-			metadata: {
-			  name: "PlayerSpawned",
-			  types: ["felt252", "u32", "u32", "felt252", "felt252"],
-			  customTypes: ["Vec2"],
-			},
-		  }
-		);
-	  })(),
-	  GameStarted: (() => {
-		return defineComponent(
-		  world,
-		  { startTime: RecsType.BigInt, gameId: RecsType.BigInt },
-		  {
-			metadata: {
-			  name: "GameStarted",
-			  types: ["felt252", "felt252"],
-			  customTypes: [],
-			},
-		  }
-		);
 	  })(),
   };
 }

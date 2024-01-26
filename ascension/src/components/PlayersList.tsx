@@ -30,6 +30,7 @@ export const PlayersList: React.FC<PlayersListProps> = ({ players }) => {
       <i>Click a player to highlight them on the map</i>
       {sortedPlayers.map((player) => {
         const entity = player;
+        console.log("playerlist player entity", player);
         return <Player key={entity} entity={entity} />;
       })}
     </div>

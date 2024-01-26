@@ -24,6 +24,50 @@ export async function setupWorld(provider: DojoProvider) {
                 throw error;
             }
         };
+
+        const leaveGame = async ({ 
+            account, 
+            timestamp,
+            gameId, 
+        }: { 
+            account: Account, 
+            timestamp: BigNumberish  
+            gameId: BigNumberish,
+        }) => {
+            try {
+                return await provider.execute(
+                    account,
+                    contract_name,
+                    "leaveGame",
+                    [timestamp, gameId]
+                );
+            } catch (error) {
+                console.error("Error executing spawn:", error);
+                throw error;
+            }
+        };
+        
+        const increaseRange = async ({ 
+            account, 
+            timestamp,
+            gameId, 
+        }: { 
+            account: Account, 
+            timestamp: BigNumberish  
+            gameId: BigNumberish,
+        }) => {
+            try {
+                return await provider.execute(
+                    account,
+                    contract_name,
+                    "increaseRange",
+                    [gameId, timestamp]
+                );
+            } catch (error) {
+                console.error("Error executing spawn:", error);
+                throw error;
+            }
+        };
       
         const startMatch = async ({ 
             account, 
@@ -72,7 +116,7 @@ export async function setupWorld(provider: DojoProvider) {
                 throw error;
             }
         };
-        return { spawn, startMatch, move };
+        return { spawn, startMatch, move, leaveGame, increaseRange };
     }
     return {
         actions: actions(),

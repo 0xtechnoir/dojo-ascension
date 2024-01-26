@@ -8,10 +8,11 @@ const ORIGIN_OFFSET: u8 = 22; // Origin offset
 // define the interface
 #[starknet::interface]
 trait IActions<TContractState> {
-    fn spawn_game(self: @TContractState, game_id: felt252, start_time: felt252);
     fn spawn(self: @TContractState, start_time: felt252, username: felt252, game_id: felt252);
     fn startMatch(self: @TContractState, game_id: felt252, playersSpawned: u8, startTime: felt252);
     fn move(self: @TContractState, timestamp: felt252, game_id: felt252, dir: dojo_examples::models::Direction);
+    fn leaveGame(self: @TContractState, timeStamp: felt252, game_id: felt252);
+    fn increaseRange(self: @TContractState, game_id: felt252, startTime: felt252);
 }
 
 // dojo decorator
@@ -36,6 +37,7 @@ mod actions {
         Log: Log,
         PlayerSpawned: PlayerSpawned,
         PlayerMoved: PlayerMoved,
+        RangeIncreased: RangeIncreased,
     }
 
     // custom event structs
@@ -60,12 +62,6 @@ mod actions {
         player: felt252,
     }
 
-    #[derive(Drop, Serde)]
-    struct Coordinate {
-        x: u8,
-        y: u8,
-    }
-    
     #[derive(Drop, starknet::Event)]
     struct PlayerMoved {
         timestamp: felt252,
@@ -75,6 +71,19 @@ mod actions {
         player: felt252,
     }
 
+    #[derive(Drop, starknet::Event)]
+    struct RangeIncreased {
+        timestamp: felt252,
+        gameId: felt252,
+        player: felt252,
+    }
+
+    // structs
+    #[derive(Drop, Serde)]
+    struct Coordinate {
+        x: u8,
+        y: u8,
+    }
     // @dev: 
     // 1. Assigns player id
     // 2. Sets player address
@@ -103,12 +112,18 @@ mod actions {
         get!(world, (x, y, game_id), (PlayerAtPosition)).id
     }
 
-    #[external(v0)]
-    impl ActionsImpl of IActions<ContractState> {
+    fn decrement_players_in_game(world: IWorldDispatcher, game_id: felt252) {
+        let playersInGame = get!(world, game_id, GameSession).players;
+        let startTime = get!(world, game_id, GameSession).startTime;
+        if playersInGame > 0 {
+            set!(world, GameSession { id: game_id, isLive: true, startTime: startTime, gameId: game_id, players: playersInGame - 1, isWon: false });
+        } else {
+            // end game
+        }
+    }
 
-        fn spawn_game(self: @ContractState, game_id: felt252, start_time: felt252) {
-            // Access the world dispatcher for reading.
-            let world = self.world_dispatcher.read();
+    fn spawn_game(world: IWorldDispatcher, game_id: felt252, start_time: felt252) {
+            
             set!(
                 world,
                 (GameSession {
@@ -145,6 +160,9 @@ mod actions {
             }
         }
 
+    #[external(v0)]
+    impl ActionsImpl of IActions<ContractState> {
+
         fn spawn(self: @ContractState, start_time: felt252, username: felt252, game_id: felt252) {
 
             let world = self.world_dispatcher.read();
@@ -164,7 +182,7 @@ mod actions {
             let game_session = get!(world, game_id, GameSession);
             if game_session.startTime == 0 {
                 'game session not found'.print();
-                self.spawn_game(game_id, start_time);
+                spawn_game(world, game_id, start_time);
             }
 
             // game data
@@ -204,12 +222,11 @@ mod actions {
                         world,
                         (   
                             Player { player, gameId: game_id },
-                            Username { id: player_id, game_id: game_id, value: username },
-                            InGame { player, gameId: game_id },
                             Square { x: square.x, y: square.y, game_id: game_id, piece: PieceType::Player },
-                            Health { player, value: 3 },
-                            Range { player, value: 2 },
-                            Alive { player, value: true },
+                            Username { id: player_id, game_id: game_id, value: username },
+                            Health { id: player_id, game_id: game_id, value: 3 },
+                            Range { id: player_id, game_id: game_id, value: 2 },
+                            Alive { id: player_id, game_id: game_id, value: true },
                             ActionPoint { id: player_id, game_id: game_id, value: 3 },
                         )
                     );
@@ -219,6 +236,31 @@ mod actions {
                 i += 1;
             };
         }
+
+        fn leaveGame(self: @ContractState, timeStamp: felt252, game_id: felt252) {
+            let world = self.world_dispatcher.read();
+            let player = get_caller_address();
+            let player_id = get!(world, player, (PlayerId)).id;
+            let inGame = get!(world, (player_id, game_id), InGame);
+            assert(inGame.game_id == game_id, 'Player is not in this game');
+            
+            // clear old position and set square to None
+            let position = get!(world, (player_id, game_id), (Position));
+            clear_player_at_position(world, position.x, position.y, game_id);
+            set!(world, (Square { x: position.x, y: position.y, game_id: game_id, piece: PieceType::None },));
+            
+            let username = get!(world, (player_id, game_id), (Username));
+            let action_points = get!(world, (player_id, game_id), (ActionPoint));
+            let range = get!(world, (player_id, game_id), (Range));
+            let alive = get!(world, (player_id, game_id), (Alive));
+            let health = get!(world, (player_id, game_id), (Health));
+            
+            // decrement players in game
+            decrement_players_in_game(world, game_id);
+            // delete all records
+            delete!(world, (position, username, action_points, range, alive, health));
+        }
+
 
         fn startMatch(self: @ContractState, game_id: felt252, playersSpawned: u8, startTime: felt252) {
             let world = self.world_dispatcher.read();
@@ -236,7 +278,7 @@ mod actions {
             let action_points = get!(world, (player_id, game_id), ActionPoint);
 
             assert(get!(world, game_id, GameSession).isLive == true, 'Match not started');
-            assert(get!(world, player, Alive).value == true, 'Player is dead');
+            assert(get!(world, (player_id, game_id), Alive).value == true, 'Player is dead');
             assert(action_points.value > 0, 'AP required to move');
 
             let pos = get!(world, (player_id, game_id), (Position));
@@ -268,6 +310,24 @@ mod actions {
             set!(world, ActionPoint { id: player_id, game_id: game_id, value: action_points.value - 1 });
 
             emit!(world, PlayerMoved { timestamp: timestamp, from: Coordinate { x: fromX, y: fromY }, to: Coordinate { x: toX, y: toY }, gameId: game_id, player: username });
+        }
+
+        fn increaseRange(self: @ContractState, game_id: felt252, startTime: felt252) {
+            let world = self.world_dispatcher.read();
+            let player = get_caller_address();
+            let player_id = get!(world, player, (PlayerId)).id;
+            let username = get!(world, (player_id, game_id), (Username)).value;
+            // check game has started
+            assert(get!(world, game_id, GameSession).isLive == true, 'Match not started');
+            // check player is alive
+            assert(get!(world, (player_id, game_id), Alive).value == true, 'Player is dead');
+            let range = get!(world, (player_id, game_id), Range).value;
+            let action_points = get!(world, (player_id, game_id), ActionPoint).value;
+            assert(action_points > 0, 'Not enough AP');
+            assert(range < 5, 'Range maxed out');
+            set!(world, Range { id: player_id, game_id: game_id, value: range + 1 });
+            set!(world, ActionPoint { id: player_id, game_id: game_id, value: action_points - 1 });
+            emit!(world, RangeIncreased { timestamp: startTime, gameId: game_id, player: username });
         }
     }
 }

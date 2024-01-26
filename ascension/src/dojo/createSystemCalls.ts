@@ -30,7 +30,6 @@ export function createSystemCalls(
   { Position, Player, GameSession, PlayerId }: ClientComponents
 ) {
   const spawn = async (account: Account, username: string, gameId: BigNumberish) => {
-    const encodedUsername: string = shortString.encodeShortString(username);
     const timestamp = Date.now();
     const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
     const playerId = uuid();
@@ -72,8 +71,6 @@ export function createSystemCalls(
       tx = await client.actions.startMatch({
         account, gameId, playersSpawned, startTime
       });
-
-
       receipt = await account!.waitForTransaction(tx.transaction_hash, {
         retryInterval: 100,
       });
@@ -88,7 +85,6 @@ export function createSystemCalls(
           .transaction_failure_reason.error_message
       );
     }
-
     if (receipt && receipt.execution_status === "REVERTED") {
       throw Error(
         (receipt as RevertedTransactionReceiptResponse).revert_reason ||
@@ -108,11 +104,6 @@ export function createSystemCalls(
       "Account address [createSystemCalls.ts - move()]: ",
       account.address
     );
-    console.log("Entity ID [createSystemCalls.ts - move()]: ", entityId);
-
-    // get players current position
-
-    // const playerPosition = getComponentValue(Position, entityId);
     const playerId = getComponentValue(PlayerId, entityId)?.id;
     const posEntity = getEntityIdFromKeys([
       BigInt(playerId?.toString() || "0"),
@@ -130,9 +121,6 @@ export function createSystemCalls(
       return;
     }
     const { x, y } = position;
-    console.log("x: ", x);
-    console.log("y: ", y);
-
     const positionId = uuid();
     Position.addOverride(positionId, {
       entity: entityId,
@@ -184,8 +172,33 @@ export function createSystemCalls(
     console.log("attack");
   };
 
-  const increaseRange = async (gameId: number | null) => {
-    console.log("increaseRange");
+  const increaseRange = async (account: Account, gameId: BigNumberish) => {
+    const timestamp = Date.now();
+    let tx, receipt;
+    try {
+      tx = await client.actions.increaseRange({
+        account, timestamp, gameId
+      });
+      receipt = await account!.waitForTransaction(tx.transaction_hash, {
+        retryInterval: 100,
+      });
+      setComponentsFromEvents(contractComponents, getEvents(receipt));
+    } catch (e) {
+      console.log(e);
+    }
+
+    if (receipt && receipt.status === "REJECTED") {
+      throw Error(
+        (receipt as RejectedTransactionReceiptResponse)
+          .transaction_failure_reason.error_message
+      );
+    }
+    if (receipt && receipt.execution_status === "REVERTED") {
+      throw Error(
+        (receipt as RevertedTransactionReceiptResponse).revert_reason ||
+          "Transaction Reverted"
+      );
+    };
   };
 
   const claimActionPoint = async (gameId: number | null) => {
@@ -200,8 +213,33 @@ export function createSystemCalls(
     console.log("claimVotingPoint");
   };
 
-  const leaveGame = async (gameId: number | null) => {
-    console.log("leaveGame");
+  const leaveGame = async (account: Account, gameId: BigNumberish) => {
+    const timestamp = Date.now();
+    let tx, receipt;
+    try {
+      tx = await client.actions.leaveGame({
+        account, timestamp, gameId
+      });
+      receipt = await account!.waitForTransaction(tx.transaction_hash, {
+        retryInterval: 100,
+      });
+      setComponentsFromEvents(contractComponents, getEvents(receipt));
+    } catch (e) {
+      console.log(e);
+    }
+
+    if (receipt && receipt.status === "REJECTED") {
+      throw Error(
+        (receipt as RejectedTransactionReceiptResponse)
+          .transaction_failure_reason.error_message
+      );
+    }
+    if (receipt && receipt.execution_status === "REVERTED") {
+      throw Error(
+        (receipt as RevertedTransactionReceiptResponse).revert_reason ||
+          "Transaction Reverted"
+      );
+    };
   };
 
   return {

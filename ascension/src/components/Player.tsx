@@ -60,22 +60,23 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
 
   const { gameId, highlightedPlayer, setHighlightedPlayer } = useGameContext();
   
+  // session player
   const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-  
   // generate entity key from player_id and game_id
+  
   const playerId = getComponentValue(PlayerId, entity)?.id;
-  const entityKey = getEntityIdFromKeys([
+  const compositeEntityKey = getEntityIdFromKeys([
     BigInt(playerId?.toString() || "0"),
     gameId ? BigInt(gameId) : BigInt(0),
   ]);  
 
-  const username = useComponentValue(Username, entityKey)?.value?.toString() || "";
-  const health = useComponentValue(Health, entity)?.value || 0;
-  const range = useComponentValue(Range, entity)?.value || 0;
-  const ap = useComponentValue(ActionPoint, entityKey)?.value || 0;
-  const vp = useComponentValue(VotingPoint, entity)?.value || 0;
-  const alive = useComponentValue(Alive, entity)?.value || false;
-  const playerIsAlive = useComponentValue(Alive, playerEntity)?.value || false;
+  const username = useComponentValue(Username, compositeEntityKey)?.value?.toString() || "";
+  const health = useComponentValue(Health, compositeEntityKey)?.value || 0;
+  const range = useComponentValue(Range, compositeEntityKey)?.value || 0;
+  const ap = useComponentValue(ActionPoint, compositeEntityKey)?.value || 0;
+  const vp = useComponentValue(VotingPoint, compositeEntityKey)?.value || 0;
+  const alive = useComponentValue(Alive, compositeEntityKey)?.value || false;
+  const playerIsAlive = useComponentValue(Alive, compositeEntityKey)?.value || false;
 
   // State variables to track previous values
   const [prevHealth, setPrevHealth] = useState(health);
@@ -261,7 +262,7 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
               <>
                 <ActionButton
                   label="Boost Range"
-                  action={() => () => increaseRange(gameId!)}
+                  action={() => () => increaseRange(account, gameId!)}
                   buttonStyle="btn-sci-fi"
                 />
                 <ActionButton
