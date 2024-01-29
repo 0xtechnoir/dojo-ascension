@@ -3,9 +3,10 @@ import { useDojo } from "../dojo/useDojo";
 import { useComponentValue, useEntityQuery } from "@dojoengine/react";
 import { ActionButton } from "./ActionButton";
 import { useGameContext } from "../hooks/GameContext";
-import { Entity, Has, getComponentValue } from "@dojoengine/recs";
+import { Entity, Has, HasValue, getComponentValue, getComponentValueStrict } from "@dojoengine/recs";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { shortString } from "starknet";
+import { BigNumberish } from "starknet";
 
 type PlayerProps = {
   entity: Entity;
@@ -43,6 +44,8 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
         ClaimInterval,
         GameSession,
         PlayerId,
+        InGame,
+        GameData,
       },
       systemCalls: {
         sendActionPoint,
@@ -61,22 +64,24 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
   const { gameId, highlightedPlayer, setHighlightedPlayer } = useGameContext();
   
   // session player
-  const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-  // generate entity key from player_id and game_id
-  
-  const playerId = getComponentValue(PlayerId, entity)?.id;
-  const compositeEntityKey = getEntityIdFromKeys([
-    BigInt(playerId?.toString() || "0"),
-    gameId ? BigInt(gameId) : BigInt(0),
-  ]);  
+  // const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
 
-  const username = useComponentValue(Username, compositeEntityKey)?.value?.toString() || "";
-  const health = useComponentValue(Health, compositeEntityKey)?.value || 0;
-  const range = useComponentValue(Range, compositeEntityKey)?.value || 0;
-  const ap = useComponentValue(ActionPoint, compositeEntityKey)?.value || 0;
-  const vp = useComponentValue(VotingPoint, compositeEntityKey)?.value || 0;
-  const alive = useComponentValue(Alive, compositeEntityKey)?.value || false;
-  const playerIsAlive = useComponentValue(Alive, compositeEntityKey)?.value || false;
+  const playerEntity = useEntityQuery([
+    HasValue(InGame, { player: BigInt(account.address)}),
+  ]);
+
+  // create an enity key from the players address and use it to get the player_id
+  const playerAddress = getComponentValue(InGame, entity)?.player;
+  const playerAddressEntity = getEntityIdFromKeys([playerAddress!]) as Entity;
+  const playerId = getComponentValue(PlayerId, playerAddressEntity)?.id;
+
+  const username = useComponentValue(Username, entity)?.value?.toString() || "";
+  const health = useComponentValue(Health, entity)?.value || 0;
+  const range = useComponentValue(Range, entity)?.value || 0;
+  const ap = useComponentValue(ActionPoint, entity)?.value || 0;
+  const vp = useComponentValue(VotingPoint, entity)?.value || 0;
+  const alive = useComponentValue(Alive, entity)?.value || false;
+  const playerIsAlive = useComponentValue(Alive, entity)?.value || false;
 
   // State variables to track previous values
   const [prevHealth, setPrevHealth] = useState(health);
@@ -135,38 +140,24 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
     }
   }
 
-  const lastActionPointClaim = useComponentValue(
-    LastActionPointClaim,
-    entity
-  )?.value;
-
-  const lastVotingPointClaim = useComponentValue(
-    LastVotingPointClaim,
-    entity
-  )?.value;
-
-  const claimInterval = useComponentValue(
-    ClaimInterval,
-    entity
-  )?.value;
-
-  const [timeUntilNextAPClaim, setTimeUntilNextAPClaim] =
-    useState<string>("Calculating...");
-  const [timeUntilNextVPClaim, setTimeUntilNextVPClaim] =
-    useState<string>("Calculating...");
-
+  // create entity key from the Game_Data_Key
+  const gameDataEntity = useEntityQuery([Has(GameData)]);
+  const claimInterval = getComponentValue(GameData, gameDataEntity[0])?.claim_interval;
+  const lastActionPointClaim = getComponentValue(LastActionPointClaim, entity)?.value;
+  const lastVotingPointClaim = getComponentValue(LastVotingPointClaim, entity)?.value;
+  const [timeUntilNextAPClaim, setTimeUntilNextAPClaim] = useState<string>("Calculating...");
+  const [timeUntilNextVPClaim, setTimeUntilNextVPClaim] = useState<string>("Calculating...");
+  
   useEffect(() => {
     const updateTimer = (
       lastClaimTimestamp: number,
       setTimeFunc: React.Dispatch<React.SetStateAction<string>>
-    ) => {
-      const lastClaim = new Date(Number(lastClaimTimestamp));
-      const interval = Number(claimInterval);
-      const nextClaimDate = new Date(lastClaim.getTime() + interval);
-
-      const now = new Date();
-      const timeLeft = nextClaimDate.getTime() - now.getTime();
-
+      ) => {
+        const lastClaim = new Date(lastClaimTimestamp);
+        const interval = Number(claimInterval);
+        const nextClaimDate = new Date(lastClaim.getTime() + interval);  
+        const now = new Date();
+        const timeLeft = nextClaimDate.getTime() - now.getTime();
       if (timeLeft > 0) {
         const seconds = Math.floor((timeLeft / 1000) % 60);
         const minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
@@ -187,16 +178,18 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
     updateTimer(lastVotingPointClaim!, setTimeUntilNextVPClaim);
 
     return () => clearInterval(intervalId);
-  }, [lastActionPointClaim, lastVotingPointClaim, claimInterval]);
+  }, [lastActionPointClaim, 
+    // lastVotingPointClaim, 
+    claimInterval]);
 
-  if (entity === playerEntity) {
+  if (entity === playerEntity[0]) {
     // if this is your player
     return (
       <>
         <div
           key={entity}
           className={`p-2 cursor-pointer border border-gray-400 rounded-md m-1 ${
-            entity === playerEntity
+            entity === playerEntity[0]
               ? "bg-green-900"
               : entity === highlightedPlayer
               ? "bg-gray-900"
@@ -345,7 +338,7 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
                     <>
                       <ActionButton
                         label="Send AP"
-                        action={() => () => sendActionPoint(entity, gameId!)}
+                        action={() => () => sendActionPoint(account, gameId!, playerId!)}
                         buttonStyle="btn-sci-fi"
                       />
                       <ActionButton

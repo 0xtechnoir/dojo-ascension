@@ -13,7 +13,8 @@ trait IActions<TContractState> {
     fn move(self: @TContractState, timestamp: felt252, game_id: felt252, dir: dojo_examples::models::Direction);
     fn leaveGame(self: @TContractState, timeStamp: felt252, game_id: felt252);
     fn increaseRange(self: @TContractState, game_id: felt252, startTime: felt252);
-    fn claimActionPoint(self: @TContractState, game_id: felt252, timestamp: felt252);
+    fn claimActionPoint(self: @TContractState, game_id: felt252, timestamp: u64);
+    fn sendActionPoint(self: @TContractState, game_id: felt252, timestamp: felt252, recipient_id: u8);
 }
 
 // dojo decorator
@@ -40,6 +41,7 @@ mod actions {
         PlayerMoved: PlayerMoved,
         RangeIncreased: RangeIncreased,
         ActionPointClaimed: ActionPointClaimed,
+        ActionPointSent: ActionPointSent,
     }
 
     // custom event structs
@@ -82,9 +84,17 @@ mod actions {
    
     #[derive(Drop, starknet::Event)]
     struct ActionPointClaimed {
-        timestamp: felt252,
+        timestamp: u64,
         gameId: felt252,
         player: felt252,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct ActionPointSent {
+        timestamp: felt252,
+        gameId: felt252,
+        sender: felt252,
+        reciever: felt252,
     }
 
     // structs
@@ -129,6 +139,25 @@ mod actions {
         } else {
             // end game
         }
+    }
+
+    fn distance(fromX: u8, fromY: u8, toX: u8, toY: u8) -> u8 {
+        let mut deltaX: u8 = 0;
+        let mut deltaY: u8 = 0;
+    
+
+        if (fromX > toX) {
+            deltaX = fromX - toX
+        } else {
+            deltaX = toX - fromX
+        }
+
+        if (fromY > toY) {
+            deltaY = fromY - toY
+        } else {
+            deltaY = toY - fromY
+        }
+        deltaX + deltaY
     }
 
     fn spawn_game(world: IWorldDispatcher, game_id: felt252, start_time: felt252) {
@@ -233,6 +262,7 @@ mod actions {
                         world,
                         (   
                             Player { player, gameId: game_id },
+                            InGame { id: player_id, game_id: game_id, player: player },
                             Square { x: square.x, y: square.y, game_id: game_id, piece: PieceType::Player },
                             Username { id: player_id, game_id: game_id, value: username },
                             Health { id: player_id, game_id: game_id, value: 3 },
@@ -339,8 +369,9 @@ mod actions {
             emit!(world, RangeIncreased { timestamp: startTime, gameId: game_id, player: username });
         }
         
-        fn claimActionPoint(self: @ContractState, game_id: felt252, timestamp: felt252) {
+        fn claimActionPoint(self: @ContractState, game_id: felt252, timestamp: u64) {
             let world = self.world_dispatcher.read();
+            assert(get!(world, game_id, GameSession).isLive == true, 'Match not started');
             let player = get_caller_address();
             let player_id = get!(world, player, (PlayerId)).id;
             let username = get!(world, (player_id, game_id), (Username)).value;
@@ -348,7 +379,8 @@ mod actions {
             let claim_interval = get!(world, GAME_DATA_KEY, (GameData)).claim_interval;
             let last_claimed = get!(world, (player_id, game_id), (LastActionPointClaim)).value;
             // if lastClaimed is equal to 0 this is the first time they are claiming so we can skip the check
-            let elapsed_time: u256 = timestamp.into() - last_claimed.into();
+
+            let elapsed_time: u64 = timestamp - last_claimed;
             if last_claimed != 0 {
                 assert(elapsed_time > claim_interval, 'Cannot claim yet');
             }
@@ -356,6 +388,37 @@ mod actions {
             let current_action_points = get!(world, (player_id, game_id), (ActionPoint)).value;
             set!(world, ActionPoint { id: player_id, game_id: game_id, value: current_action_points + 1 });
             emit!(world, ActionPointClaimed { timestamp: timestamp, gameId: game_id, player: username });
+        }
+        
+        fn sendActionPoint(self: @ContractState, game_id: felt252, timestamp: felt252, recipient_id: u8) {
+            let world = self.world_dispatcher.read();
+            assert(get!(world, game_id, GameSession).isLive == true, 'Match not started');
+            let player = get_caller_address();
+            let player_id = get!(world, player, (PlayerId)).id;
+            
+            // check the player is alive
+            assert(get!(world, (player_id, game_id), Alive).value == true, 'Player is dead');
+            // check the recipient is alive
+            assert(get!(world, (recipient_id, game_id), Alive).value == true, 'Recipient is dead');
+            // check the recipient is in the same game
+            assert(get!(world, (recipient_id, game_id), InGame).game_id == game_id, 'Recipient not in game');
+            
+            let position = get!(world, (player_id, game_id), (Position)); 
+            let recipient_position = get!(world, (recipient_id, game_id), (Position));
+            let range = get!(world, (player_id, game_id), Range).value;
+            assert(distance(position.x, position.y, recipient_position.x, recipient_position.y) <= range, 'Recipient out of range');
+
+            // get players action points
+            let action_points = get!(world, (player_id, game_id), ActionPoint).value;
+            assert(action_points > 0, 'Not enough AP');
+            // get recipient action points
+            let recipient_action_points = get!(world, (recipient_id, game_id), ActionPoint).value; 
+            set!(world, ActionPoint { id: player_id, game_id: game_id, value: action_points - 1 });
+            set!(world, ActionPoint { id: recipient_id, game_id: game_id, value: recipient_action_points + 1 });
+
+            let username = get!(world, (player_id, game_id), (Username)).value;
+            let recipient_username = get!(world, (recipient_id, game_id), (Username)).value;
+            emit!(world, ActionPointSent { timestamp: timestamp, gameId: game_id, sender: username, reciever: recipient_username });
         }
     }
 }

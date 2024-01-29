@@ -30,7 +30,7 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
 
   const {
     setup: {
-      contractComponents: { Player, GameSession, InGame },
+      contractComponents: { GameSession, InGame },
       systemCalls: { startMatch },
     },
     account: { account },
@@ -51,9 +51,8 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
   const gameSessions = useEntityQuery([Has(GameSession)]);
 
   const allPlayers = useEntityQuery([
-    Has(Player),
-    HasValue(Player, {
-      gameId:
+    HasValue(InGame, {
+      game_id:
         playerInGameId !== null && !isNaN(playerInGameId)
           ? BigInt(playerInGameId)
           : undefined,

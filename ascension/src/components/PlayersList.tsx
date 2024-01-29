@@ -1,8 +1,9 @@
 import React from "react";
-import { Entity } from "@latticexyz/recs";
 import { Player } from "./Player";
 import { useDojo } from "../dojo/useDojo";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
+import { useEntityQuery } from "@dojoengine/react";
+import { Entity, Has, HasValue, getComponentValue } from "@dojoengine/recs";
 
 type PlayersListProps = {
   players: Entity[];
@@ -11,16 +12,25 @@ type PlayersListProps = {
 export const PlayersList: React.FC<PlayersListProps> = ({ players }) => {
 
   const {
+    setup: {
+        contractComponents: { InGame },
+    },
     account: { 
       account, 
     },
   } = useDojo();
-  const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
+  
+  const playerEntity = useEntityQuery([
+    HasValue(InGame, { player: BigInt(account.address)}),
+  ]);
+
+  // const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
 
   // Sort players so that your player comes first
+  // entity key for each player in players is constructed from their ID and the game ID
   const sortedPlayers = [...players].sort((a, b) => {
-    if (a === playerEntity) return -1;
-    if (b === playerEntity) return 1;
+    if (a === playerEntity[0]) return -1;
+    if (b === playerEntity[0]) return 1;
     return 0;
   });
 
@@ -30,7 +40,6 @@ export const PlayersList: React.FC<PlayersListProps> = ({ players }) => {
       <i>Click a player to highlight them on the map</i>
       {sortedPlayers.map((player) => {
         const entity = player;
-        console.log("playerlist player entity", player);
         return <Player key={entity} entity={entity} />;
       })}
     </div>

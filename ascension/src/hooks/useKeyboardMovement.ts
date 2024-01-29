@@ -4,7 +4,7 @@ import { ErrorWithShortMessage } from "../CustomTypes";
 import { useGameContext } from "./GameContext";
 import { Direction } from "../utils";
 
-export const useKeyboardMovement = (onMove: () => void) => {
+export const useKeyboardMovement = () => {
 
   const {
     setup: {
@@ -26,25 +26,17 @@ export const useKeyboardMovement = (onMove: () => void) => {
     const listener = async (e: KeyboardEvent) => {
       try {
         if (gameId) {
-          let moved = false;
           if (e.key === "ArrowUp" || e.key === "w") {
             await move(account, gameId, Direction.Up );
-            moved = true;
           }
           if (e.key === "ArrowDown" || e.key === "s") {
             await move(account, gameId, Direction.Down);
-            moved = true;
           }
           if (e.key === "ArrowLeft" || e.key === "a") {
             await move(account, gameId, Direction.Left);
-            moved = true;
           }
           if (e.key === "ArrowRight" || e.key === "d") {
             await move(account, gameId, Direction.Right);
-            moved = true;
-          }
-          if (moved) {
-            onMove(); // Call the callback when a move is made
           }
         }
       } catch (error) {
@@ -60,7 +52,7 @@ export const useKeyboardMovement = (onMove: () => void) => {
 
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, [move, onMove]);
+  }, [move]);
 
   return { moveMessage, clearMoveMessage };
 };

@@ -31,10 +31,12 @@ struct GameData {
     game: felt252, // Always 'game'
     board_width: u32,
     board_height: u32,
-    claim_interval: u256,
+    claim_interval: u64,
     number_of_players: u8,
     available_ids: u256, // Packed u8s?
 }
+
+
 
 // Structure representing a player's ID with a ContractAddress
 #[derive(Model, Copy, Drop, Serde)]
@@ -49,6 +51,22 @@ struct PlayerId {
 struct PlayerAddress {
     #[key]
     id: u8,
+    player: ContractAddress,
+}
+
+#[derive(Model, Drop, Serde)]
+struct Player {
+    #[key]
+    player: ContractAddress,
+    gameId: felt252,
+}
+
+#[derive(Model, Drop, Serde)]
+struct InGame {
+    #[key]
+    id: u8,
+    #[key]
+    game_id: felt252,
     player: ContractAddress,
 }
 
@@ -102,20 +120,6 @@ struct Health {
 }
 
 #[derive(Model, Drop, Serde)]
-struct InGame {
-    #[key]
-    player: ContractAddress,
-    game_id: felt252,
-}
-
-#[derive(Model, Drop, Serde)]
-struct Player {
-    #[key]
-    player: ContractAddress,
-    gameId: felt252,
-}
-
-#[derive(Model, Drop, Serde)]
 struct ActionPoint {
     #[key]
     id: u8,
@@ -146,21 +150,23 @@ struct LastActionPointClaim {
     id: u8,
     #[key]
     game_id: felt252,
-    value: felt252,
+    value: u64,
 }
 
 #[derive(Model, Drop, Serde)]
 struct LastVotingPointClaim {
     #[key]
     player: ContractAddress,
-    value: u32,
+    #[key]
+    game_id: felt252,
+    value: u64,
 }
 
 #[derive(Model, Drop, Serde)]
 struct ClaimInterval {
     #[key]
     player: ContractAddress,
-    value: u32,
+    value: u64,
 }
 
 #[derive(Model, Drop, Serde)]
@@ -178,7 +184,7 @@ struct Range {
     id: u8,
     #[key]
     game_id: felt252,
-    value: u32,
+    value: u8,
 }
 
 #[derive(Model, Drop, Serde)]

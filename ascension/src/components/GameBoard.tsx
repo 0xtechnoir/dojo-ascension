@@ -1,70 +1,101 @@
 import { useEffect, useState, useRef } from "react";
-import { Has, HasValue, Entity, getComponentValue } from "@dojoengine/recs";
+import { Has, HasValue, Entity, getComponentValueStrict } from "@dojoengine/recs";
 import { useEntityQuery } from "@dojoengine/react";
 import { GameMap } from "./GameMap";
 import { useKeyboardMovement } from "../hooks/useKeyboardMovement";
 import { useGameContext } from "../hooks/GameContext";
 import { useDojo } from "../dojo/useDojo";
-import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { ErrorWithShortMessage } from "../CustomTypes";
 
 interface GameBoardProps {
   players: Entity[];
 }
 
+interface ContextMenuState {
+  visible: boolean;
+  x: number;
+  y: number;
+  playerEntity: Entity | null;
+}
+
 export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
   const [showUsernameInput, setShowUsernameInput] = useState(false);
-  const { displayMessage, gameId } = useGameContext();
-  const [movementCount, setMovementCount] = useState(0);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>({
+    visible: false,
+    x: 0,
+    y: 0,
+    playerEntity: null,
+  });
+  const { displayMessage, gameId, setHighlightedPlayer } = useGameContext();
   const containerRef = useRef<HTMLDivElement>(null); // Create a ref for the container
 
   const {
     setup: {
-      contractComponents: { Position, Player, Alive, PlayerId },
-      systemCalls: { move },
+      contractComponents: { Position, Player, Alive, InGame },
     },
     account: { account },
   } = useDojo();
 
-  const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;  
+  const closeContextMenu = () => {
+    setContextMenu({ visible: false, x: 0, y: 0, playerEntity: null });
+  };
+
+  const playerEntity = useEntityQuery([
+    HasValue(InGame, { player: BigInt(account.address)}),
+  ]);
   
   const deadPlayers = useEntityQuery([
     Has(Player),
     HasValue(Alive, { value: false }),
   ]);
-  
-  
-  let mappedPlayers;
-  if (playerEntity) {
-    mappedPlayers = players.map((entity) => {
 
-      const playerId = getComponentValue(PlayerId, entity)?.id;
-      const entityKey = getEntityIdFromKeys([
-        BigInt(playerId?.toString() || "0"),
-        gameId ? BigInt(gameId) : BigInt(0),
-      ]);  
-      const position = getComponentValue(Position, entityKey);
+  const mappedPlayers = players.map((entity) => {
+    const position = getComponentValueStrict(Position, entity);
 
-      let emoji = !deadPlayers.includes(entity)
-        ? entity === playerEntity
-          ? "🚀"
-          : "🛸"
-        : "💀";
-      if (position) {
-        return {
-          entity,
-          x: position.x,
-          y: position.y,
-          emoji: emoji,
-        };
-      } else {
-        return null;
-      }
-    });
-  }
+    let emoji = !deadPlayers.includes(entity)
+      ? entity === playerEntity[0]
+        ? "🚀"
+        : "🛸"
+      : "💀";
+      return {
+        entity,
+        x: position.x,
+        y: position.y,
+        emoji: emoji,
+      };
+    })
 
   const closeModal = () => {
     setShowUsernameInput(false);
+  };
+
+  const onRightClickPlayer = (
+    event: React.MouseEvent,
+    clickedPlayerEntity: Entity | null
+  ) => {
+    if (clickedPlayerEntity === playerEntity[0]) {
+      return;
+    }
+
+    if (clickedPlayerEntity === null) {
+      return;
+    }
+
+    event.preventDefault();
+    setHighlightedPlayer(clickedPlayerEntity);
+    // Get the bounding rectangle of the container
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    if (containerRect) {
+      // Calculate the position relative to the container
+      const x = event.clientX - containerRect.left + 50;
+      const y = event.clientY - containerRect.top;
+      setContextMenu({
+        visible: true,
+        x: x,
+        y: y,
+        playerEntity: clickedPlayerEntity,
+      });
+    }
   };
 
   useEffect(() => {
@@ -79,12 +110,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
       document.removeEventListener("keydown", handleEscape);
     };
   }, [showUsernameInput]);
-
-  const handleMovement = () => {
-    setMovementCount(prevCount => prevCount + 1); // Increment to trigger re-render
-  };
-  const { moveMessage, clearMoveMessage } = useKeyboardMovement(handleMovement);
   
+  const { moveMessage, clearMoveMessage } = useKeyboardMovement();
   useEffect(() => {
     if (moveMessage) {
       // When setting the error message, add the new message to the existing array instead of replacing it.
@@ -143,9 +170,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
         ))}
       </div>
       <div className="flex p-6 box-border w-full h-full bg-slate-700">
-        <GameMap width={width} height={height} players={mappedPlayers || []} />
+        <GameMap 
+          width={width} 
+          height={height} 
+          players={mappedPlayers} 
+          onRightClickPlayer={onRightClickPlayer}
+        />
       </div>
     </div>
   );
 };
-

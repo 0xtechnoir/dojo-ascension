@@ -37,7 +37,7 @@ export function defineContractComponents(world: World) {
 	      {
 	        metadata: {
 	          name: "ClaimInterval",
-	          types: ["contractaddress","u32"],
+	          types: ["contractaddress","u64"],
 	          customTypes: [],
 	        },
 	      }
@@ -46,11 +46,11 @@ export function defineContractComponents(world: World) {
 	  GameData: (() => {
 	    return defineComponent(
 	      world,
-	      { game: RecsType.BigInt, board_width: RecsType.Number, board_height: RecsType.Number, number_of_players: RecsType.Number, available_ids: RecsType.BigInt },
+	      { game: RecsType.BigInt, board_width: RecsType.Number, board_height: RecsType.Number, claim_interval: RecsType.Number, number_of_players: RecsType.Number, available_ids: RecsType.BigInt },
 	      {
 	        metadata: {
 	          name: "GameData",
-	          types: ["felt252","u32","u32","u8","u256"],
+	          types: ["felt252","u32","u32","u64","u8","u256"],
 	          customTypes: [],
 	        },
 	      }
@@ -85,11 +85,11 @@ export function defineContractComponents(world: World) {
 	  InGame: (() => {
 	    return defineComponent(
 	      world,
-	      { player: RecsType.BigInt, game_id: RecsType.BigInt },
+	      { id: RecsType.Number, game_id: RecsType.BigInt, player: RecsType.BigInt },
 	      {
 	        metadata: {
 	          name: "InGame",
-	          types: ["contractaddress","felt252"],
+	          types: ["u8","felt252","contractaddress"],
 	          customTypes: [],
 	        },
 	      }
@@ -98,11 +98,11 @@ export function defineContractComponents(world: World) {
 	  LastActionPointClaim: (() => {
 	    return defineComponent(
 	      world,
-	      { player: RecsType.BigInt, value: RecsType.Number },
+	      { id: RecsType.Number, game_id: RecsType.BigInt, value: RecsType.Number },
 	      {
 	        metadata: {
 	          name: "LastActionPointClaim",
-	          types: ["contractaddress","u32"],
+	          types: ["u8","felt252","u64"],
 	          customTypes: [],
 	        },
 	      }
@@ -111,11 +111,11 @@ export function defineContractComponents(world: World) {
 	  LastVotingPointClaim: (() => {
 	    return defineComponent(
 	      world,
-	      { player: RecsType.BigInt, value: RecsType.Number },
+	      { player: RecsType.BigInt, game_id: RecsType.BigInt, value: RecsType.Number },
 	      {
 	        metadata: {
 	          name: "LastVotingPointClaim",
-	          types: ["contractaddress","u32"],
+	          types: ["contractaddress","felt252","u64"],
 	          customTypes: [],
 	        },
 	      }
@@ -193,7 +193,7 @@ export function defineContractComponents(world: World) {
 	      {
 	        metadata: {
 	          name: "Range",
-	          types: ["u8","felt252","u32"],
+	          types: ["u8","felt252","u8"],
 	          customTypes: [],
 	        },
 	      }

@@ -99,11 +99,6 @@ export function createSystemCalls(
     dir: Direction,
   ) => {
     const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-
-    console.log(
-      "Account address [createSystemCalls.ts - move()]: ",
-      account.address
-    );
     const playerId = getComponentValue(PlayerId, entityId)?.id;
     const posEntity = getEntityIdFromKeys([
       BigInt(playerId?.toString() || "0"),
@@ -164,8 +159,33 @@ export function createSystemCalls(
     }
   };
 
-  const sendActionPoint = async (entity: Entity, gameId: number | null) => {
-    console.log("sendActionPoint");
+  const sendActionPoint = async (account: Account, gameId: BigNumberish, recipient: number) => {
+    const timestamp = Date.now();
+    let tx, receipt;
+    try {
+      tx = await client.actions.sendActionPoint({
+        account, timestamp, gameId, recipient
+      });4
+      receipt = await account!.waitForTransaction(tx.transaction_hash, {
+        retryInterval: 100,
+      });
+      setComponentsFromEvents(contractComponents, getEvents(receipt));
+    } catch (e) {
+      console.log(e);
+    }
+
+    if (receipt && receipt.status === "REJECTED") {
+      throw Error(
+        (receipt as RejectedTransactionReceiptResponse)
+          .transaction_failure_reason.error_message
+      );
+    }
+    if (receipt && receipt.execution_status === "REVERTED") {
+      throw Error(
+        (receipt as RevertedTransactionReceiptResponse).revert_reason ||
+          "Transaction Reverted"
+      );
+    };
   };
 
   const attack = async (entity: Entity, gameId: number | null) => {
