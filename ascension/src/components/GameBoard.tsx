@@ -6,6 +6,7 @@ import { useKeyboardMovement } from "../hooks/useKeyboardMovement";
 import { useGameContext } from "../hooks/GameContext";
 import { useDojo } from "../dojo/useDojo";
 import { ErrorWithShortMessage } from "../CustomTypes";
+import { Player as PlayerComponet } from "./Player";
 
 interface GameBoardProps {
   players: Entity[];
@@ -93,6 +94,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
   };
 
   useEffect(() => {
+    document.addEventListener("click", closeContextMenu);
+    return () => {
+      document.removeEventListener("click", closeContextMenu);
+    };
+  }, []);
+
+  useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape" && showUsernameInput) {
         closeModal();
@@ -170,6 +178,18 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
           players={mappedPlayers} 
           onRightClickPlayer={onRightClickPlayer}
         />
+        {contextMenu.playerEntity && contextMenu.visible && (
+          <div
+            className="context-menu"
+            style={{
+              position: "absolute",
+              left: `${contextMenu.x}px`,
+              top: `${contextMenu.y}px`,
+            }}
+          >
+            <PlayerComponet entity={contextMenu.playerEntity} />
+          </div>
+        )}
       </div>
     </div>
   );

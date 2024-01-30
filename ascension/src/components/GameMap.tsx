@@ -1,5 +1,5 @@
 import { useComponentValue } from "@dojoengine/react";
-import { Entity, getComponentValue } from "@dojoengine/recs";
+import { Entity, getComponentValue, getComponentValueStrict } from "@dojoengine/recs";
 import { twMerge } from "tailwind-merge";
 import { useDojo } from "../dojo/useDojo";
 import { useGameContext } from "../hooks/GameContext";
@@ -56,14 +56,10 @@ export const GameMap = ({
     gameId ? BigInt(gameId) : BigInt(0),
   ]);  
   
-
-  // let highlightedPlayerPosition: Position | null = null;
-  // if (highlightedPlayer) {
-  //   highlightedPlayerPosition = getComponentValueStrict(
-  //     Position,
-  //     highlightedPlayer
-  //   );
-  // }
+  let highlightedPlayerPosition: Position | null = null;
+  if (highlightedPlayer) {
+    highlightedPlayerPosition = getComponentValueStrict(Position, highlightedPlayer);
+  }
 
   const handlePlayerRightClick = (
     event: React.MouseEvent,
@@ -83,12 +79,12 @@ export const GameMap = ({
       {rows.map((y) =>
         columns.map((x) => {
           let isHighlighted: boolean | null = false;
-          // if (highlightedPlayerPosition) {
-          //   isHighlighted =
-          //     highlightedPlayer &&
-          //     x === highlightedPlayerPosition.x &&
-          //     y === highlightedPlayerPosition.y;
-          // }
+          if (highlightedPlayerPosition) {
+            isHighlighted =
+              highlightedPlayer &&
+              x === highlightedPlayerPosition.x &&
+              y === highlightedPlayerPosition.y;
+          }
 
           // Define the ships firing perimeter
           let totalDistance = 0;
