@@ -15,6 +15,7 @@ import {
   HasValue,
   getComponentValue,
 } from "@dojoengine/recs";
+import { set } from "mobx";
 
 // Define the types for each prop
 interface GameBoardViewProps {
@@ -27,6 +28,7 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
   const [showSpawnButton, setShowSpawnButton] = useState(true);
   const [showLeaveGameButton, setShowLeaveGameButton] = useState(true);
   const [showLeaveGameModal, setShowLeaveGameModal] = useState(false);
+  const [showGameOverModal, setShowGameOverModal] = useState(false);
 
   const {
     setup: {
@@ -48,18 +50,19 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
     }
   }, [playerInGameId]);
 
-  const gameSessions = useEntityQuery([Has(GameSession)]);
-
+  
   const allPlayers = useEntityQuery([
     HasValue(InGame, {
       game_id:
-        playerInGameId !== null && !isNaN(playerInGameId)
-          ? BigInt(playerInGameId)
-          : undefined,
+      playerInGameId !== null && !isNaN(playerInGameId)
+      ? BigInt(playerInGameId)
+      : undefined,
     }),
   ]);
-
+  
+  const gameSessions = useEntityQuery([Has(GameSession)]);
   let gameIsLive = false;
+  let gameIsWon = false;
   if (gameSessions) {
     // loop through gameSessions and find the one with the matching gameId
     for (let i = 0; i < gameSessions.length; i++) {
@@ -67,6 +70,12 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
       const rec = getComponentValue(GameSession, gameSession);
       if (rec && Number(rec?.gameId) === gameId) {
         gameIsLive = rec.isLive;
+        gameIsWon = rec.isWon;
+        if (rec.isWon && !showGameOverModal) {
+          displayMessage("Game over. Click 'Leave Game'");
+          setShowGameOverModal(true);
+        }
+        break;
       }
     }
   }
@@ -112,7 +121,8 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
             <button className="btn-sci-fi" onClick={handleSpawnClick}>
               Spawn
             </button>
-          ) : (
+          ) : 
+          !gameIsWon ? (
             <button
               onClick={start}
               className={`text-white  ${
@@ -122,7 +132,7 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
             >
               {gameIsLive ? "Match Started" : "Start Match"}
             </button>
-          )}
+          ): <> </>}
           {showLeaveGameButton && (
             <button className="btn-sci-fi" onClick={handleLeaveGameClick}>
               Leave Game

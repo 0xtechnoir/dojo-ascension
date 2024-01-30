@@ -42,7 +42,7 @@ export async function setupWorld(provider: DojoProvider) {
                     [timestamp, gameId]
                 );
             } catch (error) {
-                console.error("Error executing spawn:", error);
+                console.error("Error executing leaveGame:", error);
                 throw error;
             }
         };
@@ -64,7 +64,7 @@ export async function setupWorld(provider: DojoProvider) {
                     [gameId, timestamp]
                 );
             } catch (error) {
-                console.error("Error executing spawn:", error);
+                console.error("Error executing increaseRange:", error);
                 throw error;
             }
         };
@@ -86,7 +86,29 @@ export async function setupWorld(provider: DojoProvider) {
                     [gameId, timestamp]
                 );
             } catch (error) {
-                console.error("Error executing spawn:", error);
+                console.error("Error executing claimActionPoint:", error);
+                throw error;
+            }
+        };
+        
+        const claimVotingPoint = async ({ 
+            account, 
+            timestamp,
+            gameId, 
+        }: { 
+            account: Account, 
+            timestamp: BigNumberish  
+            gameId: BigNumberish,
+        }) => {
+            try {
+                return await provider.execute(
+                    account,
+                    contract_name,
+                    "claimVotingPoint",
+                    [gameId, timestamp]
+                );
+            } catch (error) {
+                console.error("Error executing claimVotingPoint:", error);
                 throw error;
             }
         };
@@ -110,7 +132,55 @@ export async function setupWorld(provider: DojoProvider) {
                     [gameId, timestamp, recipient]
                 );
             } catch (error) {
-                console.error("Error executing spawn:", error);
+                console.error("Error executing sendActionPoint:", error);
+                throw error;
+            }
+        };
+        
+        const vote = async ({ 
+            account, 
+            timestamp,
+            gameId,
+            recipient_id, 
+        }: { 
+            account: Account, 
+            timestamp: BigNumberish  
+            gameId: BigNumberish,
+            recipient_id: number,
+        }) => {
+            try {
+                return await provider.execute(
+                    account,
+                    contract_name,
+                    "vote",
+                    [gameId, timestamp, recipient_id]
+                );
+            } catch (error) {
+                console.error("Error executing vote:", error);
+                throw error;
+            }
+        };
+        
+        const attack = async ({ 
+            account, 
+            timestamp,
+            target_id, 
+            gameId,
+        }: { 
+            account: Account, 
+            timestamp: BigNumberish  
+            target_id: number,
+            gameId: BigNumberish,
+        }) => {
+            try {
+                return await provider.execute(
+                    account,
+                    contract_name,
+                    "attack",
+                    [timestamp, target_id, gameId]
+                );
+            } catch (error) {
+                console.error("Error executing attack:", error);
                 throw error;
             }
         };
@@ -134,7 +204,7 @@ export async function setupWorld(provider: DojoProvider) {
                     [gameId, playersSpawned, startTime]
                 );
             } catch (error) {
-                console.error("Error executing spawn:", error);
+                console.error("Error executing startMatch:", error);
                 throw error;
             }
         };
@@ -162,7 +232,7 @@ export async function setupWorld(provider: DojoProvider) {
                 throw error;
             }
         };
-        return { spawn, startMatch, move, leaveGame, increaseRange, claimActionPoint, sendActionPoint };
+        return { spawn, startMatch, move, leaveGame, increaseRange, claimActionPoint, claimVotingPoint, sendActionPoint, attack, vote };
     }
     return {
         actions: actions(),

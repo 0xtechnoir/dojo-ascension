@@ -59,11 +59,11 @@ export function defineContractComponents(world: World) {
 	  GameSession: (() => {
 	    return defineComponent(
 	      world,
-	      { id: RecsType.BigInt, isLive: RecsType.Boolean, startTime: RecsType.BigInt, gameId: RecsType.BigInt, players: RecsType.Number, isWon: RecsType.Boolean },
+	      { id: RecsType.BigInt, isLive: RecsType.Boolean, startTime: RecsType.BigInt, gameId: RecsType.BigInt, live_players: RecsType.Number, players: RecsType.Number, isWon: RecsType.Boolean },
 	      {
 	        metadata: {
 	          name: "GameSession",
-	          types: ["felt252","bool","felt252","felt252","u8","bool"],
+	          types: ["felt252","bool","felt252","felt252","u8","u8","bool"],
 	          customTypes: [],
 	        },
 	      }
@@ -111,11 +111,11 @@ export function defineContractComponents(world: World) {
 	  LastVotingPointClaim: (() => {
 	    return defineComponent(
 	      world,
-	      { player: RecsType.BigInt, game_id: RecsType.BigInt, value: RecsType.Number },
+	      { id: RecsType.Number, game_id: RecsType.BigInt, value: RecsType.Number },
 	      {
 	        metadata: {
 	          name: "LastVotingPointClaim",
-	          types: ["contractaddress","felt252","u64"],
+	          types: ["u8","felt252","u64"],
 	          customTypes: [],
 	        },
 	      }
@@ -228,11 +228,11 @@ export function defineContractComponents(world: World) {
 	  VotingPoint: (() => {
 	    return defineComponent(
 	      world,
-	      { player: RecsType.BigInt, value: RecsType.Number },
+	      { id: RecsType.Number, game_id: RecsType.BigInt, value: RecsType.Number },
 	      {
 	        metadata: {
 	          name: "VotingPoint",
-	          types: ["contractaddress","u8"],
+	          types: ["u8","felt252","u8"],
 	          customTypes: [],
 	        },
 	      }

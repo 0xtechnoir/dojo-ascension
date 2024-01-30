@@ -65,9 +65,10 @@ const LeaveGameModal: React.FC<LeaveGameModalProps> = ({
           X
         </button>
         <h2 className="text-2xl mb-4">
-          Are you sure you want to leave this game?
+          You are about to leave this game session.
         </h2>
-        <p>You will forfit any progress made</p>
+        <p>If this is a live match you will not be able to rejoin.</p>
+        <br />
         <button onClick={onSubmit} className="btn-sci-fi">
           Leave
         </button>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Has, HasValue, Entity, getComponentValueStrict } from "@dojoengine/recs";
+import { HasValue, Entity, getComponentValueStrict, getComponentValue } from "@dojoengine/recs";
 import { useEntityQuery } from "@dojoengine/react";
 import { GameMap } from "./GameMap";
 import { useKeyboardMovement } from "../hooks/useKeyboardMovement";
@@ -44,15 +44,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
     HasValue(InGame, { player: BigInt(account.address)}),
   ]);
   
-  const deadPlayers = useEntityQuery([
-    Has(Player),
-    HasValue(Alive, { value: false }),
-  ]);
-
   const mappedPlayers = players.map((entity) => {
     const position = getComponentValueStrict(Position, entity);
-
-    let emoji = !deadPlayers.includes(entity)
+    let emoji = getComponentValue(Alive, entity)?.value
       ? entity === playerEntity[0]
         ? "🚀"
         : "🛸"

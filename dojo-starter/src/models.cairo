@@ -33,12 +33,9 @@ struct GameData {
     board_height: u32,
     claim_interval: u64,
     number_of_players: u8,
-    available_ids: u256, // Packed u8s?
+    available_ids: u256,
 }
 
-
-
-// Structure representing a player's ID with a ContractAddress
 #[derive(Model, Copy, Drop, Serde)]
 struct PlayerId {
     #[key]
@@ -46,7 +43,6 @@ struct PlayerId {
     id: u8,
 }
 
-// Structure linking a player's ID to their ContractAddress
 #[derive(Model, Copy, Drop, Serde)]
 struct PlayerAddress {
     #[key]
@@ -120,6 +116,15 @@ struct Health {
 }
 
 #[derive(Model, Drop, Serde)]
+struct Username {
+    #[key]
+    id: u8,
+    #[key]
+    game_id: felt252,
+    value: felt252,
+}
+
+#[derive(Model, Drop, Serde)]
 struct ActionPoint {
     #[key]
     id: u8,
@@ -131,17 +136,10 @@ struct ActionPoint {
 #[derive(Model, Drop, Serde)]
 struct VotingPoint {
     #[key]
-    player: ContractAddress,
-    value: u8,
-}
-
-#[derive(Model, Drop, Serde)]
-struct Username {
-    #[key]
     id: u8,
     #[key]
     game_id: felt252,
-    value: felt252,
+    value: u8,
 }
 
 #[derive(Model, Drop, Serde)]
@@ -156,7 +154,7 @@ struct LastActionPointClaim {
 #[derive(Model, Drop, Serde)]
 struct LastVotingPointClaim {
     #[key]
-    player: ContractAddress,
+    id: u8,
     #[key]
     game_id: felt252,
     value: u64,
@@ -194,25 +192,10 @@ struct GameSession {
     isLive: bool,
     startTime: felt252,
     gameId: felt252,
+    live_players: u8,
     players: u8,
     isWon: bool,
 }
-
-// #[derive(Copy, Drop, Serde, Introspect)]
-// struct Vec2 {
-//     x: u32,
-//     y: u32
-// }
-
-// #[derive(Model, Copy, Drop, Serde)]
-// struct Position {
-//     #[key]
-//     player: ContractAddress,
-//     game_id: felt252,
-//     vec: Vec2,
-// }
-
-
 
 impl PrintPosition of PrintTrait<Position> {
     fn print(self: Position) {
@@ -223,42 +206,4 @@ impl PrintPosition of PrintTrait<Position> {
         'x position: '.print();
         x.print();
     }
-}
-
-
-
-// trait Vec2Trait {
-//     fn is_zero(self: Vec2) -> bool;
-//     fn is_equal(self: Vec2, b: Vec2) -> bool;
-// }
-
-// impl Vec2Impl of Vec2Trait {
-//     fn is_zero(self: Vec2) -> bool {
-//         if self.x - self.y == 0 {
-//             return true;
-//         }
-//         false
-//     }
-
-//     fn is_equal(self: Vec2, b: Vec2) -> bool {
-//         self.x == b.x && self.y == b.y
-//     }
-// }
-
-#[cfg(test)]
-mod tests {
-    // use super::{Position, Vec2, Vec2Trait};
-
-    // #[test]
-    // #[available_gas(100000)]
-    // fn test_vec_is_zero() {
-    //     assert(Vec2Trait::is_zero(Vec2 { x: 0, y: 0 }), 'not zero');
-    // }
-
-    // #[test]
-    // #[available_gas(100000)]
-    // fn test_vec_is_equal() {
-    //     let position = Vec2 { x: 420, y: 0 };
-    //     assert(position.is_equal(Vec2 { x: 420, y: 0 }), 'not equal');
-    // }
 }

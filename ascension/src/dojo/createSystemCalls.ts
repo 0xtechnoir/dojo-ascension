@@ -165,7 +165,36 @@ export function createSystemCalls(
     try {
       tx = await client.actions.sendActionPoint({
         account, timestamp, gameId, recipient
-      });4
+      });
+      receipt = await account!.waitForTransaction(tx.transaction_hash, {
+        retryInterval: 100,
+      });
+      setComponentsFromEvents(contractComponents, getEvents(receipt));
+    } catch (e) {
+      console.log(e);
+    }
+
+    if (receipt && receipt.status === "REJECTED") {
+      throw Error(
+        (receipt as RejectedTransactionReceiptResponse)
+          .transaction_failure_reason.error_message
+      );
+    }
+    if (receipt && receipt.execution_status === "REVERTED") {
+      throw Error(
+        (receipt as RevertedTransactionReceiptResponse).revert_reason ||
+          "Transaction Reverted"
+      );
+    };
+  };
+  
+  const vote = async (account: Account, gameId: BigNumberish, recipient_id: number) => {
+    const timestamp = Date.now();
+    let tx, receipt;
+    try {
+      tx = await client.actions.vote({
+        account, timestamp, gameId, recipient_id
+      });
       receipt = await account!.waitForTransaction(tx.transaction_hash, {
         retryInterval: 100,
       });
@@ -188,8 +217,34 @@ export function createSystemCalls(
     };
   };
 
-  const attack = async (entity: Entity, gameId: number | null) => {
-    console.log("attack");
+  const attack = async (account: Account, gameId: BigNumberish, target_id: number) => {
+    console.log("attack called");
+    const timestamp = Date.now();
+    let tx, receipt;
+    try {
+      tx = await client.actions.attack({
+        account, timestamp, target_id, gameId
+      });
+      receipt = await account!.waitForTransaction(tx.transaction_hash, {
+        retryInterval: 100,
+      });
+      setComponentsFromEvents(contractComponents, getEvents(receipt));
+    } catch (e) {
+      console.log(e);
+    }
+
+    if (receipt && receipt.status === "REJECTED") {
+      throw Error(
+        (receipt as RejectedTransactionReceiptResponse)
+          .transaction_failure_reason.error_message
+      );
+    }
+    if (receipt && receipt.execution_status === "REVERTED") {
+      throw Error(
+        (receipt as RevertedTransactionReceiptResponse).revert_reason ||
+          "Transaction Reverted"
+      );
+    };
   };
 
   const increaseRange = async (account: Account, gameId: BigNumberish) => {
@@ -250,13 +305,35 @@ export function createSystemCalls(
     };
   };
 
-  const vote = async (entity: Entity, gameId: number | null) => {
-    console.log("vote");
+  const claimVotingPoint = async (account: Account, gameId: BigNumberish) => {
+    const timestamp = Date.now();
+    let tx, receipt;
+    try {
+      tx = await client.actions.claimVotingPoint({
+        account, timestamp, gameId
+      });
+      receipt = await account!.waitForTransaction(tx.transaction_hash, {
+        retryInterval: 100,
+      });
+      setComponentsFromEvents(contractComponents, getEvents(receipt));
+    } catch (e) {
+      console.log(e);
+    }
+
+    if (receipt && receipt.status === "REJECTED") {
+      throw Error(
+        (receipt as RejectedTransactionReceiptResponse)
+          .transaction_failure_reason.error_message
+      );
+    }
+    if (receipt && receipt.execution_status === "REVERTED") {
+      throw Error(
+        (receipt as RevertedTransactionReceiptResponse).revert_reason ||
+          "Transaction Reverted"
+      );
+    };
   };
 
-  const claimVotingPoint = async (gameId: number | null) => {
-    console.log("claimVotingPoint");
-  };
 
   const leaveGame = async (account: Account, gameId: BigNumberish) => {
     const timestamp = Date.now();

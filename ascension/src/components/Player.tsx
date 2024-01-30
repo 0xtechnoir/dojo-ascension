@@ -6,7 +6,6 @@ import { useGameContext } from "../hooks/GameContext";
 import { Entity, Has, HasValue, getComponentValue, getComponentValueStrict } from "@dojoengine/recs";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
 import { shortString } from "starknet";
-import { BigNumberish } from "starknet";
 
 type PlayerProps = {
   entity: Entity;
@@ -62,26 +61,25 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
   } = useDojo();
 
   const { gameId, highlightedPlayer, setHighlightedPlayer } = useGameContext();
-  
-  // session player
-  // const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-
-  const playerEntity = useEntityQuery([
-    HasValue(InGame, { player: BigInt(account.address)}),
-  ]);
-
-  // create an enity key from the players address and use it to get the player_id
+   
+  // create an enity key from the players address and use it to get the comonents player_id
   const playerAddress = getComponentValue(InGame, entity)?.player;
   const playerAddressEntity = getEntityIdFromKeys([playerAddress!]) as Entity;
   const playerId = getComponentValue(PlayerId, playerAddressEntity)?.id;
+  
+  // create an entity key for the client player
+  const playerEntity = useEntityQuery([
+    HasValue(InGame, { player: BigInt(account.address)}),
+  ]);
+  
 
   const username = useComponentValue(Username, entity)?.value?.toString() || "";
   const health = useComponentValue(Health, entity)?.value || 0;
   const range = useComponentValue(Range, entity)?.value || 0;
   const ap = useComponentValue(ActionPoint, entity)?.value || 0;
   const vp = useComponentValue(VotingPoint, entity)?.value || 0;
-  const alive = useComponentValue(Alive, entity)?.value || false;
-  const playerIsAlive = useComponentValue(Alive, entity)?.value || false;
+  const componentPlayerIsAlive = useComponentValue(Alive, entity)?.value || false;
+  const clientPlayerIsAlive = useComponentValue(Alive, playerEntity[0])?.value || false;
 
   // State variables to track previous values
   const [prevHealth, setPrevHealth] = useState(health);
@@ -179,7 +177,7 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
 
     return () => clearInterval(intervalId);
   }, [lastActionPointClaim, 
-    // lastVotingPointClaim, 
+    lastVotingPointClaim, 
     claimInterval]);
 
   if (entity === playerEntity[0]) {
@@ -198,10 +196,10 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
           onClick={() => setHighlightedPlayer(entity)}
         >
           <p>
-            Name: {shortString.decodeShortString(username)} (You {alive ? "🚀" : "💀"})
+            Name: {shortString.decodeShortString(username)} (You {componentPlayerIsAlive ? "🚀" : "💀"})
           </p>
-          <p>Status: {alive ? `Alive` : `Dead`}</p>
-          {alive ? (
+          <p>Status: {componentPlayerIsAlive ? `Alive` : `Dead`}</p>
+          {componentPlayerIsAlive ? (
             <>
               <p
                 className={`Health: ${health} ${
@@ -251,7 +249,7 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
             </p>
           )}
           {gameIsLive &&
-            (playerIsAlive ? (
+            (clientPlayerIsAlive ? (
               <>
                 <ActionButton
                   label="Boost Range"
@@ -270,7 +268,7 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
               <>
                 <ActionButton
                   label={`Claim VP: ${timeUntilNextVPClaim}`}
-                  action={() => () => claimVotingPoint(gameId!)}
+                  action={() => () => claimVotingPoint(account, gameId!)}
                   buttonStyle={
                     timeUntilNextVPClaim === "Now!" ? "btn-cta" : "btn-sci-fi"
                   }
@@ -286,7 +284,7 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
       <div
         key={entity}
         className={`p-2 cursor-pointer border border-gray-400 rounded-md m-1 ${
-          !alive
+          !componentPlayerIsAlive
             ? "bg-red-900"
             : entity === highlightedPlayer
             ? "bg-gray-600"
@@ -295,8 +293,8 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
         onClick={() => setHighlightedPlayer(entity)}
       >
         <p>Name: {shortString.decodeShortString(username)} 🛸</p>
-        <p>Status: {alive ? `Alive` : `Dead`}</p>
-        {alive ? (
+        <p>Status: {componentPlayerIsAlive ? `Alive` : `Dead`}</p>
+        {componentPlayerIsAlive ? (
           <>
             <p
               className={`Health: ${health} ${
@@ -334,7 +332,7 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
             <div className="flex">
               {gameIsLive && (
                 <>
-                  {playerIsAlive && alive && (
+                  {clientPlayerIsAlive && componentPlayerIsAlive && (
                     <>
                       <ActionButton
                         label="Send AP"
@@ -343,15 +341,15 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
                       />
                       <ActionButton
                         label="Attack"
-                        action={() => () => attack(entity, gameId!)}
+                        action={() => () => attack(account, gameId!, playerId!)}
                         buttonStyle="btn-sci-fi"
                       />
                     </>
                   )}
-                  {!playerIsAlive && alive && (
+                  {!clientPlayerIsAlive && componentPlayerIsAlive && (
                     <ActionButton
                       label="Vote"
-                      action={() => () => vote(entity, gameId!)}
+                      action={() => () => vote(account, gameId!, playerId!)}
                       buttonStyle="btn-sci-fi"
                     />
                   )}
