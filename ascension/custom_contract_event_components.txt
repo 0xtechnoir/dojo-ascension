@@ -1,31 +1,193 @@
 PlayerSpawned: (() => {
-  return defineComponent(
-    world,
-    {
-      timestamp: RecsType.BigInt,
-      position: { x: RecsType.Number, y: RecsType.Number },
-      gameId: RecsType.BigInt,
-      player: RecsType.String,
-    },
-    {
-      metadata: {
-        name: "PlayerSpawned",
-        types: ["felt252", "u32", "u32", "felt252", "felt252"],
-        customTypes: ["Vec2"],
-      },
-    }
-  );
-})(),
-GameStarted: (() => {
-  return defineComponent(
-    world,
-    { startTime: RecsType.BigInt, gameId: RecsType.BigInt },
-    {
-      metadata: {
-        name: "GameStarted",
-        types: ["felt252", "felt252"],
-        customTypes: [],
-      },
-    }
-  );
-})(),
+		return defineComponent(
+		  world,
+		  {
+			timestamp: RecsType.BigInt,
+			at: { x: RecsType.Number, y: RecsType.Number },
+			gameId: RecsType.BigInt,
+			player: RecsType.String,
+		  },
+		  {
+			metadata: {
+			  name: "PlayerSpawned",
+			  types: ["felt252", "u8", "u8", "felt252", "felt252"],
+			  customTypes: ["Coordinate"],
+			},
+		  }
+		);
+	  })(),
+	  GameStarted: (() => {
+		return defineComponent(
+		  world,
+		  { 
+			startTime: RecsType.BigInt, 
+			gameId: RecsType.BigInt 
+		  },
+		  {
+			metadata: {
+			  name: "GameStarted",
+			  types: ["felt252", "felt252"],
+			  customTypes: [],
+			},
+		  }
+		);
+	  })(),
+	  PlayerMoved: (() => {
+		return defineComponent(
+		  world,
+		  { timestamp: RecsType.BigInt,
+			from: { x: RecsType.Number, y: RecsType.Number },
+			to: { x: RecsType.Number, y: RecsType.Number },
+			gameId: RecsType.BigInt,
+			player: RecsType.String,
+		  },
+		  {
+			metadata: {
+			  name: "PlayerMoved",
+			  types: ["felt252", "u8", "u8", "u8", "u8", "felt252", "felt252"],
+			  customTypes: ["Coordinate"],
+			},
+		  }
+		);
+	  })(),
+	  RangeIncreased: (() => {
+		return defineComponent(
+		  world,
+		  { 
+			timestamp: RecsType.BigInt, 
+			gameId: RecsType.BigInt,
+			player: RecsType.String, 
+			newRange: RecsType.Number,
+		  },
+		  {
+			metadata: {
+			  name: "RangeIncreased",
+			  types: ["felt252", "felt252", "felt252", "u8"],
+			  customTypes: [],
+			},
+		  }
+		);
+	  })(),
+	  ActionPointClaimed: (() => {
+		return defineComponent(
+		  world,
+		  { 
+			timestamp: RecsType.Number, 
+			gameId: RecsType.BigInt,
+			player: RecsType.String, 
+		  },
+		  {
+			metadata: {
+			  name: "ActionPointClaimed",
+			  types: ["u64", "felt252", "felt252"],
+			  customTypes: [],
+			},
+		  }
+		);
+	  })(),
+	  VotingPointClaimed: (() => {
+		return defineComponent(
+		  world,
+		  { 
+			timestamp: RecsType.Number, 
+			gameId: RecsType.BigInt,
+			player: RecsType.String, 
+		  },
+		  {
+			metadata: {
+			  name: "VotingPointClaimed",
+			  types: ["u64", "felt252", "felt252"],
+			  customTypes: [],
+			},
+		  }
+		);
+	  })(),
+	  ActionPointSent: (() => {
+		return defineComponent(
+		  world,
+		  { 
+			timestamp: RecsType.BigInt, 
+			gameId: RecsType.BigInt,
+			sender: RecsType.String, 
+			receiver: RecsType.String,
+		  },
+		  {
+			metadata: {
+			  name: "ActionPointSent",
+			  types: ["felt252", "felt252", "felt252", "felt252"],
+			  customTypes: [],
+			},
+		  }
+		);
+	  })(),
+	  Voted: (() => {
+		return defineComponent(
+		  world,
+		  { 
+			timestamp: RecsType.BigInt, 
+			gameId: RecsType.BigInt,
+			voter: RecsType.String, 
+			receiver: RecsType.String,
+		  },
+		  {
+			metadata: {
+			  name: "Voted",
+			  types: ["felt252", "felt252", "felt252", "felt252"],
+			  customTypes: [],
+			},
+		  }
+		);
+	  })(),
+	  PlayerKilled: (() => {
+		return defineComponent(
+		  world,
+		  { 
+			timestamp: RecsType.Number, 
+			gameId: RecsType.BigInt,
+			killer: RecsType.String, 
+			killed: RecsType.String,
+		  },
+		  {
+			metadata: {
+			  name: "Voted",
+			  types: ["u64", "felt252", "felt252", "felt252"],
+			  customTypes: [],
+			},
+		  }
+		);
+	  })(),
+	  AttackExecuted: (() => {
+		return defineComponent(
+		  world,
+		  { 
+			timestamp: RecsType.Number, 
+			gameId: RecsType.BigInt,
+			attacker: RecsType.String, 
+			target: RecsType.String,
+		  },
+		  {
+			metadata: {
+			  name: "Voted",
+			  types: ["u64", "felt252", "felt252", "felt252"],
+			  customTypes: [],
+			},
+		  }
+		);
+	  })(),
+	  GameEnded: (() => {
+		return defineComponent(
+		  world,
+		  { 
+			timestamp: RecsType.Number, 
+			gameId: RecsType.BigInt, 
+			winning_player: RecsType.String,
+		  },
+		  {
+			metadata: {
+			  name: "GameEnded",
+			  types: ["u64", "felt252", "felt252"],
+			  customTypes: [],
+			},
+		  }
+		);
+	  })(),

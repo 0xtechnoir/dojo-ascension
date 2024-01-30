@@ -69,8 +69,7 @@ mod actions {
     #[derive(Drop, starknet::Event)]
     struct PlayerSpawned {
         timestamp: felt252,
-        x: u8,
-        y: u8,
+        at: Coordinate,
         gameId: felt252,
         player: felt252,
     }
@@ -89,6 +88,7 @@ mod actions {
         timestamp: felt252,
         gameId: felt252,
         player: felt252,
+        newRange: u8,
     }
    
     #[derive(Drop, starknet::Event)]
@@ -118,14 +118,15 @@ mod actions {
         timestamp: felt252,
         gameId: felt252,
         voter: felt252,
-        reciever: felt252,
+        receiver: felt252,
     }
     
     #[derive(Drop, starknet::Event)]
     struct PlayerKilled {
         timestamp: u64,
         gameId: felt252,
-        player: felt252,
+        killer: felt252,
+        killed: felt252,
     }
   
     #[derive(Drop, starknet::Event)]
@@ -140,6 +141,7 @@ mod actions {
     struct GameEnded {
         timestamp: u64,
         gameId: felt252,
+        winning_player: felt252,
     }
 
     // structs
@@ -236,23 +238,26 @@ mod actions {
 
     fn end_game(world: IWorldDispatcher, timestamp: u64, winning_player: u8, game_id: felt252) {
         let mut game_session = get!(world, game_id, GameSession);
+        // get winnning player username
+        let winning_player_username = get!(world, (winning_player, game_id), (Username)).value;
         game_session.isWon = true;
         game_session.isLive = false;
         set!(world, (game_session));
-        emit!(world, GameEnded { timestamp: timestamp, gameId: game_id });
+        emit!(world, GameEnded { timestamp: timestamp, gameId: game_id, winning_player: winning_player_username});
     }
 
-    fn kill_player(world: IWorldDispatcher, timestamp: u64, player_id: u8, game_id: felt252) {
-        let username = get!(world, (player_id, game_id), (Username)).value;
-        set!(world, Alive { id: player_id, game_id: game_id, value: false });
-        set!(world, ActionPoint { id: player_id, game_id: game_id, value: 0 });
-        set!(world, Range { id: player_id, game_id: game_id, value: 0 });
-        set!(world, Health { id: player_id, game_id: game_id, value: 0 });
+    fn kill_player(world: IWorldDispatcher, timestamp: u64, player_id: u8, target_id: u8, game_id: felt252) {
+        let player_username = get!(world, (player_id, game_id), (Username)).value;
+        let target_username = get!(world, (target_id, game_id), (Username)).value;
+        set!(world, Alive { id: target_id, game_id: game_id, value: false });
+        set!(world, ActionPoint { id: target_id, game_id: game_id, value: 0 });
+        set!(world, Range { id: target_id, game_id: game_id, value: 0 });
+        set!(world, Health { id: target_id, game_id: game_id, value: 0 });
         // decrement players in game session
         let mut game_session = get!(world, game_id, GameSession);
         game_session.live_players =  game_session.live_players - 1;
         set!(world, (game_session));
-        emit!(world, PlayerKilled { timestamp: timestamp, gameId: game_id, player: username });
+        emit!(world, PlayerKilled { timestamp: timestamp, gameId: game_id, killer: player_username, killed: target_username });
 
         // check if game is over
         let remaining_players = get!(world, game_id, GameSession).live_players;
@@ -338,7 +343,7 @@ mod actions {
                             ActionPoint { id: player_id, game_id: game_id, value: 3 },
                         )
                     );
-                    emit!(world, PlayerSpawned { timestamp: start_time, x: square.x, y: square.y, gameId: game_id, player: username });
+                    emit!(world, PlayerSpawned { timestamp: start_time, at: Coordinate { x: square.x, y: square.y }, gameId: game_id, player: username });
                     break;
                 }
                 i += 1;
@@ -424,7 +429,7 @@ mod actions {
             assert(range < 5, 'Range maxed out');
             set!(world, Range { id: player_id, game_id: game_id, value: range + 1 });
             set!(world, ActionPoint { id: player_id, game_id: game_id, value: action_points - 1 });
-            emit!(world, RangeIncreased { timestamp: startTime, gameId: game_id, player: username });
+            emit!(world, RangeIncreased { timestamp: startTime, gameId: game_id, player: username, newRange: range + 1});
         }
         
         fn claimActionPoint(self: @ContractState, game_id: felt252, timestamp: u64) {
@@ -523,7 +528,7 @@ mod actions {
 
             let username = get!(world, (player_id, game_id), (Username)).value;
             let recipient_username = get!(world, (recipient_id, game_id), (Username)).value;
-            emit!(world, Voted { timestamp: timestamp, gameId: game_id, voter: username, reciever: recipient_username });
+            emit!(world, Voted { timestamp: timestamp, gameId: game_id, voter: username, receiver: recipient_username });
         }
 
         fn attack(self: @ContractState, timestamp: u64, target_id: u8, game_id: felt252) {
@@ -556,7 +561,7 @@ mod actions {
 
             let target_health = get!(world, (target_id, game_id), Health).value; 
             if target_health == 0 {
-                kill_player(world, timestamp, target_id, game_id);
+                kill_player(world, timestamp, player_id, target_id, game_id);
             }
         }
     }
