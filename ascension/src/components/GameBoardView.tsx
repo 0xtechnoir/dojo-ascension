@@ -10,12 +10,7 @@ import { useDojo } from "../dojo/useDojo";
 import { useGameContext } from "../hooks/GameContext";
 import { extractErrorMessage } from "../utils";
 import { useEntityQuery } from "@dojoengine/react";
-import {
-  Has,
-  HasValue,
-  getComponentValue,
-} from "@dojoengine/recs";
-import { set } from "mobx";
+import { Has, HasValue, getComponentValue } from "@dojoengine/recs";
 
 // Define the types for each prop
 interface GameBoardViewProps {
@@ -94,7 +89,6 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
       throw new Error("No game ID found");
     }
     try {
-      console.log("Account address [GameBoardView.tsx - start()]: ", account.address);
       await startMatch(account, gameId, playersSpawned);
     } catch (error: any) {
       if (error instanceof Error) {

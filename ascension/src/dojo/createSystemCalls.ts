@@ -1,4 +1,3 @@
-// import { SetupNetworkResult } from "./setupNetwork";
 import { Account } from "starknet";
 import { Entity, getComponentValue } from "@dojoengine/recs";
 import { uuid } from "@latticexyz/utils";
@@ -8,11 +7,7 @@ import {
   getEvents,
   setComponentsFromEvents,
 } from "@dojoengine/utils";
-import {
-  shortString,
-  RejectedTransactionReceiptResponse,
-  RevertedTransactionReceiptResponse,
-} from "starknet";
+import { RejectedTransactionReceiptResponse, RevertedTransactionReceiptResponse } from "starknet";
 import type { IWorld } from "../generated/generated";
 import { defineContractComponents } from "./contractComponents";
 import { BigNumberish } from "starknet";
@@ -99,26 +94,31 @@ export function createSystemCalls(
     dir: Direction,
   ) => {
     const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
+    console.log("entityId: ", entityId);
     const playerId = getComponentValue(PlayerId, entityId)?.id;
+    console.log("playerId: ", playerId);
     const posEntity = getEntityIdFromKeys([
       BigInt(playerId?.toString() || "0"),
       gameId ? BigInt(gameId) : BigInt(0),
     ]);
+    console.log("posEntity: ", posEntity);
     const position = getComponentValue(Position, posEntity);
+    console.log("position: ", position);
 
     const new_position = updatePositionWithDirection(
       dir,
       position || { x: 0, y: 0 }
-  );
+    );
+    console.log("new_position: ", new_position);
 
     if (!position) {
-      console.warn("cannot moveBy without a player position, not yet spawned?");
+      console.warn("cannot move without a player position, not yet spawned?");
       return;
     }
-    const { x, y } = position;
+
     const positionId = uuid();
     Position.addOverride(positionId, {
-      entity: entityId,
+      entity: posEntity,
       value: {
         id: playerId,
         game_id: BigInt(gameId),
@@ -218,7 +218,6 @@ export function createSystemCalls(
   };
 
   const attack = async (account: Account, gameId: BigNumberish, target_id: number) => {
-    console.log("attack called");
     const timestamp = Date.now();
     let tx, receipt;
     try {

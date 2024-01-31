@@ -94,7 +94,6 @@ const ActivityLog = () => {
   const {
     VITE_PUBLIC_TORII,
   } = import.meta.env;
-  console.log("torri url: ", VITE_PUBLIC_TORII);
 
   useEffect(() => {
     const fetchData = async () => {

@@ -104,9 +104,6 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
       setShowAPFlash(true);
     }
     if (vp !== prevVP) {
-      console.log("vp changed");
-      console.log("vp: ", vp);
-      console.log("prevVP: ", prevVP);
       setShowVPFlash(true);
     }
     // Reset flash states after 1 second

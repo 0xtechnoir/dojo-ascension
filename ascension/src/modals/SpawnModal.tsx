@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Entity, getComponentValue } from "@dojoengine/recs";
 import { useGameContext } from "../hooks/GameContext";
-import { ErrorWithShortMessage } from "../CustomTypes";
 import Modal from '@mui/material/Modal';
 import { useDojo } from "../dojo/useDojo";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
+import { extractErrorMessage } from "../utils";
 
 type SpawnModalProps = {
   showSpawnModal: boolean;
@@ -69,9 +69,9 @@ const SpawnModal: React.FC<SpawnModalProps> = ({
 
     } catch (error) {
       console.log("handleModalSubmit error: ", error);
-      if (typeof error === "object" && error !== null) {
-        const message = (error as ErrorWithShortMessage).cause.data.args[0];
-        displayMessage(message);
+      if (error instanceof Error) {
+        const message = extractErrorMessage(error.message);
+        message ? displayMessage(message) : null;
       }
     } finally {
       setIsLoading(false);

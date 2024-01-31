@@ -42,7 +42,6 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
 
   const closeMessageModal = () => {
     setMessage("");
-    console.log("closeMessageModal - gameIsWon: ", gameIsWon);
     if (gameIsWon) {
       setShowGameBoard(false);
     }

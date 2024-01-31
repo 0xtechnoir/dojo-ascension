@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useDojo } from "../dojo/useDojo";
-import { ErrorWithShortMessage } from "../CustomTypes";
 import { useGameContext } from "./GameContext";
 import { Direction } from "../utils";
+import { extractErrorMessage } from "../utils";
 
 export const useKeyboardMovement = () => {
 
@@ -16,7 +16,7 @@ export const useKeyboardMovement = () => {
   } = useDojo();
 
   const [moveMessage, setMoveMessage] = useState<string>("");
-  const { gameId } = useGameContext();
+  const { gameId, displayMessage } = useGameContext();
 
   const clearMoveMessage = () => {
     setMoveMessage("");
@@ -40,12 +40,9 @@ export const useKeyboardMovement = () => {
           }
         }
       } catch (error) {
-        console.log("catch block triggerd. Error: ", error);
-        if (typeof error === "object" && error !== null) {
-          const message = (error as ErrorWithShortMessage).cause.data.args[0];
-          setMoveMessage(message);
-        } else {
-          console.error(error);
+        if (error instanceof Error) {
+          const message = extractErrorMessage(error.message);
+          message ? displayMessage(message) : null;
         }
       }
     };

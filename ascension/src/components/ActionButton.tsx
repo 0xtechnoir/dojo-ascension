@@ -1,5 +1,5 @@
-import { ErrorWithShortMessage } from "../CustomTypes";
 import { useGameContext } from "../hooks/GameContext";
+import { extractErrorMessage } from "../utils";
 
 type ActionButtonProps = {
   label: string;
@@ -26,10 +26,9 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
           const actionToExecute = action();
           await actionToExecute();
         } catch (error) {
-          console.log(error);
-          if (typeof error === "object" && error !== null) {
-            const message = (error as ErrorWithShortMessage).cause.data.args[0];
-            displayMessage(message);
+          if (error instanceof Error) {
+            const message = extractErrorMessage(error.message);
+            message ? displayMessage(message) : null;
           }
         }
       }}

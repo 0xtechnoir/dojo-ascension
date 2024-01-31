@@ -5,7 +5,6 @@ import { GameMap } from "./GameMap";
 import { useKeyboardMovement } from "../hooks/useKeyboardMovement";
 import { useGameContext } from "../hooks/GameContext";
 import { useDojo } from "../dojo/useDojo";
-import { ErrorWithShortMessage } from "../CustomTypes";
 import { Player as PlayerComponet } from "./Player";
 
 interface GameBoardProps {
@@ -27,7 +26,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
     y: 0,
     playerEntity: null,
   });
-  const { displayMessage, gameId, setHighlightedPlayer } = useGameContext();
+  const { setHighlightedPlayer } = useGameContext();
   const containerRef = useRef<HTMLDivElement>(null); // Create a ref for the container
 
   const {
@@ -113,15 +112,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
     };
   }, [showUsernameInput]);
   
-  const { moveMessage, clearMoveMessage } = useKeyboardMovement();
-  useEffect(() => {
-    if (moveMessage) {
-      // When setting the error message, add the new message to the existing array instead of replacing it.
-      displayMessage(moveMessage);
-      clearMoveMessage();
-    }
-  }, [moveMessage]);
-
+  useKeyboardMovement();
   const width = 11;
   const height = 11;
 

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Modal from '@mui/material/Modal';
 import { useGameContext } from "../hooks/GameContext";
 import { useDojo } from "../dojo/useDojo";
-import { ErrorWithShortMessage } from "../CustomTypes";
+import { extractErrorMessage } from "../utils";
 
 type LeaveGameModalProps = {
   showLeaveGameModal: boolean;
@@ -37,9 +37,9 @@ const LeaveGameModal: React.FC<LeaveGameModalProps> = ({
       await leaveGame(account, BigInt(gameId));
       setShowLeaveGameButton(false);
     } catch (error) {
-      if (typeof error === "object" && error !== null) {
-        const message = (error as ErrorWithShortMessage).cause.data.args[0];
-        displayMessage(message);
+      if (error instanceof Error) {
+        const message = extractErrorMessage(error.message);
+        message ? displayMessage(message) : null;
       }
     } finally {
       setShowLeaveGameModal(false);
