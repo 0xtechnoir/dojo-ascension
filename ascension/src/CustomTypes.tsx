@@ -1,11 +1,3 @@
-export interface ErrorWithShortMessage {
-  cause: {
-    data: {
-      args: string[];
-    };
-  };
-}
-
 export interface LogMessage {
   id: string;
   timestamp: number;

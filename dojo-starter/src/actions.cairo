@@ -374,7 +374,7 @@ mod actions {
         fn startMatch(self: @ContractState, game_id: felt252, playersSpawned: u8, startTime: felt252) {
             let world = self.world_dispatcher.read();
             assert(playersSpawned > 1, '2 or more players required');
-            assert(get!(world, game_id, GameSession).isLive != true, 'Match already started');
+            assert(get!(world, game_id, GameSession).isLive != true, 'Match already live');
             set!(world, GameSession { id: game_id, isLive: true, startTime: startTime, gameId: game_id, live_players : playersSpawned, players: playersSpawned, isWon: false });
             emit!(world, GameStarted { startTime: startTime, gameId: game_id });
         }
@@ -382,7 +382,7 @@ mod actions {
         // Implementation of the move function for the ContractState struct.
         fn move(self: @ContractState, timestamp: felt252, game_id: felt252, dir: Direction) {
             let world = self.world_dispatcher.read();
-            assert(get!(world, game_id, GameSession).isLive == true, 'Match not started');
+            assert(get!(world, game_id, GameSession).isLive == true, 'Match not live');
             let player = get_caller_address();
             let player_id = get!(world, player, (PlayerId)).id;
             assert(get!(world, (player_id, game_id), Alive).value == true, 'Player is dead');
@@ -421,7 +421,7 @@ mod actions {
             let player = get_caller_address();
             let player_id = get!(world, player, (PlayerId)).id;
             let username = get!(world, (player_id, game_id), (Username)).value;
-            assert(get!(world, game_id, GameSession).isLive == true, 'Match not started');
+            assert(get!(world, game_id, GameSession).isLive == true, 'Match not live');
             assert(get!(world, (player_id, game_id), Alive).value == true, 'Player is dead');
             let range = get!(world, (player_id, game_id), Range).value;
             let action_points = get!(world, (player_id, game_id), ActionPoint).value;
@@ -434,7 +434,7 @@ mod actions {
         
         fn claimActionPoint(self: @ContractState, game_id: felt252, timestamp: u64) {
             let world = self.world_dispatcher.read();
-            assert(get!(world, game_id, GameSession).isLive == true, 'Match not started');
+            assert(get!(world, game_id, GameSession).isLive == true, 'Match not live');
             let player = get_caller_address();
             let player_id = get!(world, player, (PlayerId)).id;
             // check the player is alive
@@ -457,7 +457,7 @@ mod actions {
         
         fn claimVotingPoint(self: @ContractState, game_id: felt252, timestamp: u64) {
             let world = self.world_dispatcher.read();
-            assert(get!(world, game_id, GameSession).isLive == true, 'Match not started');
+            assert(get!(world, game_id, GameSession).isLive == true, 'Match not live');
             let player = get_caller_address();
             let player_id = get!(world, player, (PlayerId)).id;
             // check player is dead
@@ -480,7 +480,7 @@ mod actions {
         
         fn sendActionPoint(self: @ContractState, game_id: felt252, timestamp: felt252, recipient_id: u8) {
             let world = self.world_dispatcher.read();
-            assert(get!(world, game_id, GameSession).isLive == true, 'Match not started');
+            assert(get!(world, game_id, GameSession).isLive == true, 'Match not live');
             let player = get_caller_address();
             let player_id = get!(world, player, (PlayerId)).id;
             
@@ -511,7 +511,7 @@ mod actions {
         
         fn vote(self: @ContractState, game_id: felt252, timestamp: felt252, recipient_id: u8) {
             let world = self.world_dispatcher.read();
-            assert(get!(world, game_id, GameSession).isLive == true, 'Match not started');
+            assert(get!(world, game_id, GameSession).isLive == true, 'Match not live');
             let player = get_caller_address();
             let player_id = get!(world, player, (PlayerId)).id;
             assert(get!(world, (player_id, game_id), Alive).value == false, 'Live players cannot vote');
@@ -533,7 +533,7 @@ mod actions {
 
         fn attack(self: @ContractState, timestamp: u64, target_id: u8, game_id: felt252) {
             let world = self.world_dispatcher.read();
-            assert(get!(world, game_id, GameSession).isLive == true, 'Match not started');
+            assert(get!(world, game_id, GameSession).isLive == true, 'Match not live');
             let player = get_caller_address();
             let player_id = get!(world, player, (PlayerId)).id;
             assert(get!(world, (player_id, game_id), Alive).value == true, 'Player is dead');
