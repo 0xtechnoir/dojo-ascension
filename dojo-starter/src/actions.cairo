@@ -354,22 +354,30 @@ mod actions {
             let world = self.world_dispatcher.read();
             let player = get_caller_address();
             let player_id = get!(world, player, (PlayerId)).id;
-            let inGame = get!(world, (player_id, game_id), InGame);
-            assert(inGame.game_id == game_id, 'Player is not in this game');
-            
-            // clear old position and set square to None
-            let position = get!(world, (player_id, game_id), (Position));
-            clear_player_at_position(world, position.x, position.y, game_id);
-            set!(world, (Square { x: position.x, y: position.y, game_id: game_id, piece: PieceType::None },));
-            
             let username = get!(world, (player_id, game_id), (Username));
-            let action_points = get!(world, (player_id, game_id), (ActionPoint));
-            let range = get!(world, (player_id, game_id), (Range));
-            let alive = get!(world, (player_id, game_id), (Alive));
-            let health = get!(world, (player_id, game_id), (Health));
-            // delete all records
-            delete!(world, (position, username, action_points, range, alive, health));
+            delete!(world, (username));
         }
+        
+        // fn leaveGame(self: @ContractState, timeStamp: felt252, game_id: felt252) {
+        //     let world = self.world_dispatcher.read();
+        //     let player = get_caller_address();
+        //     let player_id = get!(world, player, (PlayerId)).id;
+        //     let inGame = get!(world, (player_id, game_id), InGame);
+        //     assert(inGame.game_id == game_id, 'Player is not in this game');
+            
+        //     // clear old position and set square to None
+        //     let position = get!(world, (player_id, game_id), (Position));
+        //     set!(world, (PlayerAtPosition { x: position.x, y: position.y, game_id: game_id, id: 0 }));
+        //     set!(world, (Square { x: position.x, y: position.y, game_id: game_id, piece: PieceType::None },));
+            
+        //     let username = get!(world, (player_id, game_id), (Username));
+        //     // let action_points = get!(world, (player_id, game_id), (ActionPoint));
+        //     // let range = get!(world, (player_id, game_id), (Range));
+        //     // let alive = get!(world, (player_id, game_id), (Alive));
+        //     // let health = get!(world, (player_id, game_id), (Health));
+        //     // delete all records
+        //     delete!(world, (username));
+        // }
 
         fn startMatch(self: @ContractState, game_id: felt252, playersSpawned: u8, startTime: felt252) {
             let world = self.world_dispatcher.read();
