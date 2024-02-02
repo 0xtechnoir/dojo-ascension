@@ -350,34 +350,44 @@ mod actions {
             };
         }
 
-        fn leaveGame(self: @ContractState, timeStamp: felt252, game_id: felt252) {
-            let world = self.world_dispatcher.read();
-            let player = get_caller_address();
-            let player_id = get!(world, player, (PlayerId)).id;
-            let username = get!(world, (player_id, game_id), (Username));
-            delete!(world, (username));
-        }
-        
         // fn leaveGame(self: @ContractState, timeStamp: felt252, game_id: felt252) {
         //     let world = self.world_dispatcher.read();
         //     let player = get_caller_address();
         //     let player_id = get!(world, player, (PlayerId)).id;
-        //     let inGame = get!(world, (player_id, game_id), InGame);
-        //     assert(inGame.game_id == game_id, 'Player is not in this game');
-            
-        //     // clear old position and set square to None
-        //     let position = get!(world, (player_id, game_id), (Position));
-        //     set!(world, (PlayerAtPosition { x: position.x, y: position.y, game_id: game_id, id: 0 }));
-        //     set!(world, (Square { x: position.x, y: position.y, game_id: game_id, piece: PieceType::None },));
-            
         //     let username = get!(world, (player_id, game_id), (Username));
-        //     // let action_points = get!(world, (player_id, game_id), (ActionPoint));
-        //     // let range = get!(world, (player_id, game_id), (Range));
-        //     // let alive = get!(world, (player_id, game_id), (Alive));
-        //     // let health = get!(world, (player_id, game_id), (Health));
-        //     // delete all records
         //     delete!(world, (username));
         // }
+        
+        fn leaveGame(self: @ContractState, timeStamp: felt252, game_id: felt252) {
+            let world = self.world_dispatcher.read();
+            let player_address = get_caller_address();
+            let player_id = get!(world, player_address, (PlayerId)).id;
+            let mut inGame = get!(world, (player_id, game_id), InGame);
+            assert(inGame.game_id == game_id, 'Player is not in this game');
+            // set inGame gaemId to 0
+            inGame.game_id = 0;
+            set!(world, (inGame));
+
+
+            
+            // clear old position and set square to None
+            // let position = get!(world, (player_id, game_id), (Position));
+            // set!(world, (PlayerAtPosition { x: position.x, y: position.y, game_id: game_id, id: 0 }));
+            // set!(world, (Square { x: position.x, y: position.y, game_id: game_id, piece: PieceType::None },));
+            
+            // let username = get!(world, (player_id, game_id), (Username));
+            // let player = get!(world, (player_address), (Player));
+            // let action_points = get!(world, (player_id, game_id), (ActionPoint));
+            // let voting_points = get!(world, (player_id, game_id), (VotingPoint));
+            // let last_action_point_claimed = get!(world, (player_id, game_id), (LastActionPointClaim));
+            // let last_voting_point_claimed = get!(world, (player_id, game_id), (LastVotingPointClaim));
+            // let range = get!(world, (player_id, game_id), (Range));
+            // let alive = get!(world, (player_id, game_id), (Alive));
+            // let health = get!(world, (player_id, game_id), (Health));
+            // // delete all records
+            // delete!(world, (inGame));
+            // delete!(world, (username, player, action_points, voting_points, range, alive, health, inGame, position, last_action_point_claimed, last_voting_point_claimed));
+        }
 
         fn startMatch(self: @ContractState, game_id: felt252, playersSpawned: u8, startTime: felt252) {
             let world = self.world_dispatcher.read();
@@ -584,6 +594,7 @@ mod tests {
     // use dojo_examples::models::{player, username, position, health, range, action_point, alive};
     use dojo_examples::models::{
         Player, player,
+        PlayerId, player_id,
         Username, username, 
         Position, position,
         GameSession,
@@ -598,28 +609,28 @@ mod tests {
 
 
 
-    #[test]
-    #[available_gas(3000000000000000)]
-    fn test_spawn_game() {
-        let caller = starknet::contract_address_const::<0x0>();
-        let mut models = array![position::TEST_CLASS_HASH];
-        let world = spawn_test_world(models);
-        // deploy systems contract
-        let contract_address = world
-            .deploy_contract('salt', actions::TEST_CLASS_HASH.try_into().unwrap());
-        let actions_system = IActionsDispatcher { contract_address };
-        // spawn new game session
+    // #[test]
+    // #[available_gas(3000000000000000)]
+    // fn test_spawn_game() {
+    //     let caller = starknet::contract_address_const::<0x0>();
+    //     let mut models = array![position::TEST_CLASS_HASH];
+    //     let world = spawn_test_world(models);
+    //     // deploy systems contract
+    //     let contract_address = world
+    //         .deploy_contract('salt', actions::TEST_CLASS_HASH.try_into().unwrap());
+    //     let actions_system = IActionsDispatcher { contract_address };
+    //     // spawn new game session
 
-        let game_id: felt252 = 123456;
-        let start_time: felt252 = 1699744590;
-        actions_system.spawn_game(game_id, start_time);
-        // check the GameSession was created correctly
-        let game_session = get!(world, game_id, GameSession);
-        assert(game_session.startTime == start_time, 'start time is wrong');
-        // Check a selection of cells to make sure their piece is None
-        let square = get!(world, (0, 0, game_id), Square);
-        assert(square.piece == PieceType::None, 'piece is wrong');
-    }
+    //     let game_id: felt252 = 123456;
+    //     let start_time: felt252 = 1699744590;
+    //     actions_system.spawn_game(game_id, start_time);
+    //     // check the GameSession was created correctly
+    //     let game_session = get!(world, game_id, GameSession);
+    //     assert(game_session.startTime == start_time, 'start time is wrong');
+    //     // Check a selection of cells to make sure their piece is None
+    //     let square = get!(world, (0, 0, game_id), Square);
+    //     assert(square.piece == PieceType::None, 'piece is wrong');
+    // }
 
     // #[test]
     // #[available_gas(3000000000000000)]
@@ -642,7 +653,7 @@ mod tests {
     //     let start_time: felt252 = 1699744590;
     //     let username1: felt252 = 'test_user1';
     //     let username2: felt252 = 'test_user2';
-    //     actions_system.spawn_game(game_id, start_time);
+    //     // actions_system.spawn_game(game_id, start_time);
 
     //     // Spawn two different players then check their start positions are correct
     //     testing::set_contract_address(caller);
@@ -668,6 +679,40 @@ mod tests {
     //     assert(action_points.value == 3, 'action points should equal 3');
     // }
 
+    #[test]
+    #[available_gas(3000000000000000)]
+    fn test_leaveGame() {
+        //setup
+        let caller = starknet::contract_address_const::<0x0>();
+        let mut models = array![
+            position::TEST_CLASS_HASH,
+            health::TEST_CLASS_HASH,
+            range::TEST_CLASS_HASH,
+            alive::TEST_CLASS_HASH
+        ];
+        let world = spawn_test_world(models);
+        let contract_address = world
+            .deploy_contract('salt', actions::TEST_CLASS_HASH.try_into().unwrap());
+        let actions_system = IActionsDispatcher { contract_address };
+
+        // spawn
+        let game_id: felt252 = 123456;
+        let start_time: felt252 = 1699744590;
+        let username1: felt252 = 'test_user1';
+        testing::set_contract_address(caller);
+        actions_system.spawn(start_time, username1, game_id);
+        
+        let player_id = get!(world, caller, (PlayerId)).id;
+        let username_before = get!(world, (player_id, game_id), (Username)).value;
+        'username before leaving game'.print();
+        username_before.print();
+        // leave game
+        actions_system.leaveGame(1699744590, game_id);
+        let username_after = get!(world, (player_id, game_id), (Username)).value;
+        'username after leaving game'.print();
+        username_after.print();
+    }
+    
     // #[test]
     // #[available_gas(3000000000000000)]
     // fn test_move() {

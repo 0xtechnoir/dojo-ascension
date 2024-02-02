@@ -36,12 +36,6 @@ struct GameData {
     available_ids: u256,
 }
 
-#[derive(Model, Copy, Drop, Serde)]
-struct PlayerId {
-    #[key]
-    player: ContractAddress,
-    id: u8,
-}
 
 #[derive(Model, Copy, Drop, Serde)]
 struct PlayerAddress {
@@ -66,7 +60,13 @@ struct InGame {
     player: ContractAddress,
 }
 
-// Structure representing a position with an ID, and x, y coordinates
+#[derive(Model, Copy, Drop, Serde)]
+struct PlayerId {
+    #[key]
+    player: ContractAddress,
+    id: u8,
+}
+
 #[derive(Model, Copy, Drop, Serde)]
 struct Position {
     #[key]
@@ -77,7 +77,6 @@ struct Position {
     y: u8,
 }
 
-// Structure to represent a player's position with unique keys and an ID
 #[derive(Model, Copy, Drop, Serde)]
 struct PlayerAtPosition {
     #[key]
@@ -160,12 +159,12 @@ struct LastVotingPointClaim {
     value: u64,
 }
 
-#[derive(Model, Drop, Serde)]
-struct ClaimInterval {
-    #[key]
-    player: ContractAddress,
-    value: u64,
-}
+// #[derive(Model, Drop, Serde)]
+// struct ClaimInterval {
+//     #[key]
+//     player: ContractAddress,
+//     value: u64,
+// }
 
 #[derive(Model, Drop, Serde)]
 struct Alive {

@@ -51,7 +51,7 @@ export const GameMap = ({
   // entity id we are syncing
   const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
   const playerId = getComponentValue(PlayerId, playerEntity)?.id;
-  const compositeEntityKey = getEntityIdFromKeys([
+  const posEntity = getEntityIdFromKeys([
     BigInt(playerId?.toString() || "0"),
     gameId ? BigInt(gameId) : BigInt(0),
   ]);  
@@ -71,8 +71,8 @@ export const GameMap = ({
 
   const rows = new Array(width).fill(0).map((_, i) => i);
   const columns = new Array(height).fill(0).map((_, i) => i);
-  const shipRange = useComponentValue(Range, compositeEntityKey)?.value;
-  let playerPosition = players?.find((p) => p?.entity === compositeEntityKey);
+  const shipRange = useComponentValue(Range, posEntity)?.value;
+  let playerPosition = players?.find((p) => p?.entity === posEntity);
 
   return (
     <div className="inline-grid p-2 bg-slate-900 relative overflow-hidden">

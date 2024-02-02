@@ -45,6 +45,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
   ]);
   
   const mappedPlayers = players.map((entity) => {
+    console.log("mapped player entity", entity);
     const position = getComponentValueStrict(Position, entity);
     let emoji = getComponentValue(Alive, entity)?.value
       ? entity === playerEntity[0]

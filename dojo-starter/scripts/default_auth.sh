@@ -2,10 +2,19 @@
 set -euo pipefail
 pushd $(dirname "$0")/..
 
-export RPC_URL="http://localhost:5050";
+# Check the script argument for the mode
+mode=${1:-dev} # default to 'dev' if no argument is provided
+
+# Use different manifest file based on the mode
+if [ "$mode" = "release" ]; then
+    manifest_file="./target/release/manifest.json"
+    export RPC_URL="https://api.cartridge.gg/x/ascension-dojo/katana";
+else
+    manifest_file="./target/dev/manifest.json"
+    export RPC_URL="http://localhost:5050";
+fi
 
 export WORLD_ADDRESS=$(cat ./target/dev/manifest.json | jq -r '.world.address')
-
 export ACTIONS_ADDRESS=$(cat ./target/dev/manifest.json | jq -r '.contracts[] | select(.name == "dojo_examples::actions::actions" ).address')
 
 echo "---------------------------------------------------------------------------"

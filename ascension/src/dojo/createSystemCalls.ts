@@ -94,9 +94,7 @@ export function createSystemCalls(
     dir: Direction,
   ) => {
     const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-    console.log("entityId: ", entityId);
     const playerId = getComponentValue(PlayerId, entityId)?.id;
-    console.log("playerId: ", playerId);
     const posEntity = getEntityIdFromKeys([
       BigInt(playerId?.toString() || "0"),
       gameId ? BigInt(gameId) : BigInt(0),
@@ -104,7 +102,6 @@ export function createSystemCalls(
     console.log("posEntity: ", posEntity);
     const position = getComponentValue(Position, posEntity);
     console.log("position: ", position);
-
     const new_position = updatePositionWithDirection(
       dir,
       position || { x: 0, y: 0 }
@@ -122,8 +119,8 @@ export function createSystemCalls(
       value: {
         id: playerId,
         game_id: BigInt(gameId),
-        x: new_position.x,
-        y: new_position.y,
+        x: 8,
+        y: 8
       },
     });
 
@@ -136,6 +133,7 @@ export function createSystemCalls(
       receipt = await account!.waitForTransaction(tx.transaction_hash, {
         retryInterval: 100,
       });
+      console.log("receipt: ", receipt);  
       setComponentsFromEvents(contractComponents, getEvents(receipt));
     } catch (e) {
       console.log(e);

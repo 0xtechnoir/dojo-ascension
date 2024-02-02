@@ -74,7 +74,6 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
   
 
   const username = useComponentValue(Username, entity)?.value?.toString() || "";
-  console.log("username", shortString.decodeShortString(username));
   const health = useComponentValue(Health, entity)?.value || 0;
   const range = useComponentValue(Range, entity)?.value || 0;
   const ap = useComponentValue(ActionPoint, entity)?.value || 0;
