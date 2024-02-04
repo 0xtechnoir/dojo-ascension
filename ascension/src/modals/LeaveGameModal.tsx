@@ -18,7 +18,7 @@ const LeaveGameModal: React.FC<LeaveGameModalProps> = ({
   const { gameId } = useGameContext();
 
   // Contexts
-  const { displayMessage, setShowGameBoard } = useGameContext();
+  const { displayMessage, setShowGameBoard, setPlayerInGameId, setHighlightedPlayer } = useGameContext();
 
   const {
     setup: {
@@ -44,6 +44,8 @@ const LeaveGameModal: React.FC<LeaveGameModalProps> = ({
     } finally {
       setShowLeaveGameModal(false);
       setShowGameBoard(false);
+      setPlayerInGameId(null);
+      setHighlightedPlayer(null);
     }
   };
 

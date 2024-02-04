@@ -1,5 +1,5 @@
-import { useComponentValue } from "@dojoengine/react";
-import { Entity, getComponentValue, getComponentValueStrict } from "@dojoengine/recs";
+import { useComponentValue, useEntityQuery } from "@dojoengine/react";
+import { Entity, getComponentValue, getComponentValueStrict, HasValue } from "@dojoengine/recs";
 import { twMerge } from "tailwind-merge";
 import { useDojo } from "../dojo/useDojo";
 import { useGameContext } from "../hooks/GameContext";
@@ -40,25 +40,23 @@ export const GameMap = ({
 }: Props) => {
   const {
     setup: {
-        contractComponents: { Position, Range, PlayerId },
+        contractComponents: { Position, Range, PlayerAddress, InGame },
     },
     account: { 
       account, 
     },
   } = useDojo();
   const { gameId, highlightedPlayer } = useGameContext();
-
-  // entity id we are syncing
-  const playerEntity = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-  const playerId = getComponentValue(PlayerId, playerEntity)?.id;
-  const posEntity = getEntityIdFromKeys([
-    BigInt(playerId?.toString() || "0"),
-    gameId ? BigInt(gameId) : BigInt(0),
-  ]);  
   
   let highlightedPlayerPosition: Position | null = null;
   if (highlightedPlayer) {
-    highlightedPlayerPosition = getComponentValueStrict(Position, highlightedPlayer);
+    console.log("highlightedPlayer: ", highlightedPlayer);
+    const highlightedPlayerId = getComponentValue(InGame, highlightedPlayer)?.id;
+    const highlightedPlayerPosEntity = getEntityIdFromKeys([
+      BigInt(highlightedPlayerId?.toString() || "0"),
+      gameId ? BigInt(gameId) : BigInt(0),
+    ]);  
+    highlightedPlayerPosition = getComponentValueStrict(Position, highlightedPlayerPosEntity);
   }
 
   const handlePlayerRightClick = (
@@ -66,13 +64,19 @@ export const GameMap = ({
     playerEntity: Entity | null
   ) => {
     event.preventDefault();
-    onRightClickPlayer(event, playerEntity);
-  };
+    if (playerEntity) {
+      onRightClickPlayer(event, playerEntity);
+    };
+  }
 
   const rows = new Array(width).fill(0).map((_, i) => i);
   const columns = new Array(height).fill(0).map((_, i) => i);
-  const shipRange = useComponentValue(Range, posEntity)?.value;
-  let playerPosition = players?.find((p) => p?.entity === posEntity);
+  
+  const playerEntity = useEntityQuery([
+    HasValue(PlayerAddress, { player: BigInt(account.address)}),
+  ]);
+  const shipRange = useComponentValue(Range, playerEntity[0])?.value;
+  let thisPlayerEntity = players?.find((p) => p?.entity === playerEntity[0]);
 
   return (
     <div className="inline-grid p-2 bg-slate-900 relative overflow-hidden">
@@ -88,13 +92,13 @@ export const GameMap = ({
 
           // Define the ships firing perimeter
           let totalDistance = 0;
-          if (playerPosition && shipRange) {
-            let deltaX = Math.abs(playerPosition.x - x);
-            let deltaY = Math.abs(playerPosition.y - y);
+          if (thisPlayerEntity && shipRange) {
+            let deltaX = Math.abs(thisPlayerEntity.x - x);
+            let deltaY = Math.abs(thisPlayerEntity.y - y);
             totalDistance = deltaX + deltaY;
           }
           let isAdjacentToPlayer =
-            playerPosition &&
+            thisPlayerEntity &&
             shipRange &&
             totalDistance <= shipRange &&
             totalDistance !== 0;

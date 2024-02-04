@@ -16,7 +16,7 @@
     "gen:events": "npx create-events ./manifest.json ./src/dojo/generated/contractEvents.ts"
   },
   "dependencies": {
-    "@dojoengine/core": "^0.5.3",
+    "@dojoengine/core": "0.5.3",
     "@dojoengine/create-burner": "^0.5.3",
     "@dojoengine/react": "^0.5.3",
     "@dojoengine/recs": "^0.1.35",

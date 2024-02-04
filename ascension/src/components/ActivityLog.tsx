@@ -52,7 +52,9 @@ const ActivityLog = () => {
         ActionPointSent, 
         AttackExecuted, 
         PlayerKilled, 
-        Voted, 
+        Voted,
+        PlayerLeft, 
+        PlayerWon,
         GameEnded
       },
     },
@@ -74,7 +76,9 @@ const ActivityLog = () => {
     | "0x28edb7159a81913ade44703effb727b50fbe761b237a0a42743215ca20b2350"
     | "0x108e40ed49a9dc8b294b18c7b4a3b8c9e5f21020472e9c33eacd4bdad00b978"
     | "0x5c9afac1c510b50d3e0004024ba7b8e190864f1543dd8025d08f88410fb162"
-    | "0x269815c7349de3f698b18cc6e3078fbd85947f74a2d27c2d192efa260b954b6";
+    | "0x269815c7349de3f698b18cc6e3078fbd85947f74a2d27c2d192efa260b954b6"
+    | "0x3ed02392c559840a50604c8552f85fffac195e5f8b4ba7b8709d385dbb95e8a"
+    | "0x3d9f0954eab0a7e5ab15b673129dd0cc97f6b21cab5bf2c26ec73a48a0e9bb5";
 
   const logTypes: Record<EventKeys, Component> = {
     "0x1ef11bf16e094cf410426c94099c06ad3ae2ace8f1f55e38df02c09a1dff618": PlayerSpawned,
@@ -88,6 +92,8 @@ const ActivityLog = () => {
     "0x108e40ed49a9dc8b294b18c7b4a3b8c9e5f21020472e9c33eacd4bdad00b978": PlayerKilled,
     "0x5c9afac1c510b50d3e0004024ba7b8e190864f1543dd8025d08f88410fb162": Voted,
     "0x269815c7349de3f698b18cc6e3078fbd85947f74a2d27c2d192efa260b954b6": GameEnded,
+    "0x3ed02392c559840a50604c8552f85fffac195e5f8b4ba7b8709d385dbb95e8a": PlayerLeft,
+    "0x3d9f0954eab0a7e5ab15b673129dd0cc97f6b21cab5bf2c26ec73a48a0e9bb5": PlayerWon,
   };
 
   const logTypesKeys = Object.keys(logTypes);
@@ -247,11 +253,26 @@ const ActivityLog = () => {
           };
 
         case GameEnded:
-          const winningPlayer = shortString.decodeShortString(decodedData.winning_player);
           return {
             id: edge.node.id,
             timestamp: Number(decodedData.timestamp),
-            message: `Game ended, ${winningPlayer} won!`,
+            message: `Game ended`,
+          };
+
+        case PlayerLeft:
+          const playerLeaving = shortString.decodeShortString(decodedData.player);
+          return {
+            id: edge.node.id,
+            timestamp: Number(decodedData.timestamp),
+            message: `${playerLeaving} left the game`,
+          };
+
+        case PlayerWon:
+          const winningPlayer = shortString.decodeShortString(decodedData.winner);
+          return {
+            id: edge.node.id,
+            timestamp: Number(decodedData.timestamp),
+            message: `${winningPlayer} won the game`,
           };
 
         default:
@@ -273,7 +294,9 @@ const ActivityLog = () => {
     AttackExecuted,
     PlayerKilled,
     Voted,
-    GameEnded 
+    GameEnded,
+    PlayerLeft,
+    PlayerWon,
   ]);
 
   return (

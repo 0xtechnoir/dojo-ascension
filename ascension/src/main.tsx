@@ -16,7 +16,6 @@ async function init() {
 
     // const setupResult = await setup();
     const setupResult = await setup(dojoConfig());
-    console.log("setupResult", setupResult);
     root.render(
         <React.StrictMode>
             <DojoProvider value={setupResult}>

@@ -1,16 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useGameContext } from "../hooks/GameContext";
 import { useEntityQuery } from "@dojoengine/react";
-import { getComponentValue, Has, Entity } from "@dojoengine/recs";
+import { getComponentValue, Has, HasValue } from "@dojoengine/recs";
 import { useDojo } from "../dojo/useDojo";
-import { getEntityIdFromKeys } from "@dojoengine/utils";
 
-interface LobbyProps {
-  setShowGameBoard: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard }) => {
-  const { setGameId, displayMessage, setPlayerInGameId, playerInGameId } = useGameContext();
+const Lobby: React.FC = () => {
+  const { setGameId, displayMessage, setPlayerInGameId, playerInGameId, setShowGameBoard } = useGameContext();
   const [clipboardStatus, setClipboardStatus] = useState({
     message: "",
     isError: false,
@@ -18,7 +13,7 @@ const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard }) => {
 
   const {
     setup: {
-      contractComponents: { GameSession, Player },
+      contractComponents: { GameSession, PlayerAddress, InGame },
     },
     account: { 
       account,
@@ -32,11 +27,14 @@ const Lobby: React.FC<LobbyProps> = ({ setShowGameBoard }) => {
     },
   } = useDojo();
  
+  const playerIdEntity = useEntityQuery([
+    HasValue(PlayerAddress, { player: BigInt(account.address)}),
+  ]);
+  
   useEffect(() => {
-    const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
-    const id = getComponentValue(Player, entityId)?.gameId;
-    setPlayerInGameId(Number(id));
-  })
+    const gameId = getComponentValue(InGame, playerIdEntity[0])?.game_id;
+    setPlayerInGameId(Number(gameId));
+  }, [playerIdEntity]);
 
   useEffect(() => {
     if (clipboardStatus.message) {

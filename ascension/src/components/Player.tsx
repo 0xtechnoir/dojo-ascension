@@ -40,11 +40,10 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
         Alive,
         LastActionPointClaim,
         LastVotingPointClaim,
-        ClaimInterval,
         GameSession,
-        PlayerId,
         InGame,
         GameData,
+        PlayerAddress,
       },
       systemCalls: {
         sendActionPoint,
@@ -61,15 +60,11 @@ export const Player: React.FC<PlayerProps> = ({ entity }) => {
   } = useDojo();
 
   const { gameId, highlightedPlayer, setHighlightedPlayer } = useGameContext();
-   
-  // create an enity key from the players address and use it to get the comonents player_id
-  const playerAddress = getComponentValue(InGame, entity)?.player;
-  const playerAddressEntity = getEntityIdFromKeys([playerAddress!]) as Entity;
-  const playerId = getComponentValue(PlayerId, playerAddressEntity)?.id;
-  
+
+  const playerId = getComponentValue(InGame, entity)?.id;
   // create an entity key for the client player
   const playerEntity = useEntityQuery([
-    HasValue(InGame, { player: BigInt(account.address)}),
+    HasValue(PlayerAddress, { player: BigInt(account.address)}),
   ]);
   
 

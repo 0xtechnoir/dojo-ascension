@@ -1,11 +1,12 @@
 import { useEffect, useState, useRef } from "react";
-import { HasValue, Entity, getComponentValueStrict, getComponentValue } from "@dojoengine/recs";
+import { HasValue, Entity, getComponentValueStrict, getComponentValue, Has } from "@dojoengine/recs";
 import { useEntityQuery } from "@dojoengine/react";
 import { GameMap } from "./GameMap";
 import { useKeyboardMovement } from "../hooks/useKeyboardMovement";
 import { useGameContext } from "../hooks/GameContext";
 import { useDojo } from "../dojo/useDojo";
-import { Player as PlayerComponet } from "./Player";
+import { Player as PlayerComponent } from "./Player";
+import { getEntityIdFromKeys } from "@dojoengine/utils";
 
 interface GameBoardProps {
   players: Entity[];
@@ -26,12 +27,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
     y: 0,
     playerEntity: null,
   });
-  const { setHighlightedPlayer } = useGameContext();
+  const { setHighlightedPlayer, gameId } = useGameContext();
   const containerRef = useRef<HTMLDivElement>(null); // Create a ref for the container
 
   const {
     setup: {
-      contractComponents: { Position, Player, Alive, InGame },
+      contractComponents: { Position, Alive, InGame, PlayerAddress },
     },
     account: { account },
   } = useDojo();
@@ -40,13 +41,19 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
     setContextMenu({ visible: false, x: 0, y: 0, playerEntity: null });
   };
 
+
   const playerEntity = useEntityQuery([
-    HasValue(InGame, { player: BigInt(account.address)}),
+    HasValue(PlayerAddress, { player: BigInt(account.address)}),
   ]);
   
+  // entity being fed into here is current just playerId (filtered by gameID)
   const mappedPlayers = players.map((entity) => {
-    console.log("mapped player entity", entity);
-    const position = getComponentValueStrict(Position, entity);
+    const playerId = getComponentValueStrict(InGame, entity).id;
+    const posEntity = getEntityIdFromKeys([
+      BigInt(playerId?.toString() || "0"),
+      gameId ? BigInt(gameId) : BigInt(0),
+    ]) as Entity;
+    const position = getComponentValueStrict(Position, posEntity);
     let emoji = getComponentValue(Alive, entity)?.value
       ? entity === playerEntity[0]
         ? "🚀"
@@ -179,7 +186,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
               top: `${contextMenu.y}px`,
             }}
           >
-            <PlayerComponet entity={contextMenu.playerEntity} />
+            <PlayerComponent entity={contextMenu.playerEntity} />
           </div>
         )}
       </div>

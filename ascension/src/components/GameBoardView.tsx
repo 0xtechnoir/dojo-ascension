@@ -12,12 +12,7 @@ import { extractErrorMessage } from "../utils";
 import { useEntityQuery } from "@dojoengine/react";
 import { Has, HasValue, getComponentValue } from "@dojoengine/recs";
 
-// Define the types for each prop
-interface GameBoardViewProps {
-  setShowGameBoard: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
+const GameBoardView: React.FC = () => {
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [showSpawnModal, setShowSpawnModal] = useState(false);
   const [showSpawnButton, setShowSpawnButton] = useState(true);
@@ -33,7 +28,7 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
     account: { account },
   } = useDojo();
 
-  const { displayMessage, gameId, playerInGameId } = useGameContext();
+  const { displayMessage, gameId, playerInGameId, setShowGameBoard } = useGameContext();
 
   useEffect(() => {
     if (playerInGameId) {
@@ -45,16 +40,17 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
     }
   }, [playerInGameId]);
 
-  
+
   const allPlayers = useEntityQuery([
     HasValue(InGame, {
       game_id:
-      playerInGameId !== null && !isNaN(playerInGameId)
-      ? BigInt(playerInGameId)
-      : undefined,
+        playerInGameId && !isNaN(playerInGameId)
+        ? BigInt(playerInGameId)
+        : undefined,
     }),
   ]);
-  
+  console.log("allPlayers: ", allPlayers);
+
   const gameSessions = useEntityQuery([Has(GameSession)]);
   let gameIsLive = false;
   let gameIsWon = false;
@@ -66,7 +62,7 @@ const GameBoardView: React.FC<GameBoardViewProps> = ({ setShowGameBoard }) => {
       if (rec && Number(rec?.gameId) === gameId) {
         gameIsLive = rec.isLive;
         gameIsWon = rec.isWon;
-        if (rec.isWon && !showGameOverModal) {
+        if (gameIsWon && !showGameOverModal) {
           displayMessage("Game over. Click 'Leave Game'");
           setShowGameOverModal(true);
         }

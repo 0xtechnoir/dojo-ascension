@@ -2,7 +2,7 @@ import React from "react";
 import { Player } from "./Player";
 import { useDojo } from "../dojo/useDojo";
 import { useEntityQuery } from "@dojoengine/react";
-import { Entity, HasValue, getComponentValue } from "@dojoengine/recs";
+import { Entity, HasValue } from "@dojoengine/recs";
 
 type PlayersListProps = {
   players: Entity[];
@@ -12,15 +12,15 @@ export const PlayersList: React.FC<PlayersListProps> = ({ players }) => {
 
   const {
     setup: {
-        contractComponents: { InGame },
+        contractComponents: { PlayerAddress },
     },
     account: { 
       account, 
     },
   } = useDojo();
-  
+
   const playerEntity = useEntityQuery([
-    HasValue(InGame, { player: BigInt(account.address)}),
+    HasValue(PlayerAddress, { player: BigInt(account.address)}),
   ]);
 
   // Sort players so that your player comes first

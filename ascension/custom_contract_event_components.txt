@@ -174,18 +174,51 @@ PlayerSpawned: (() => {
 		  }
 		);
 	  })(),
+	  PlayerLeft: (() => {
+		return defineComponent(
+		  world,
+		  { 
+			timestamp: RecsType.Number, 
+			gameId: RecsType.BigInt,
+			player: RecsType.String, 
+		  },
+		  {
+			metadata: {
+			  name: "PlayerLeft",
+			  types: ["u64", "felt252", "felt252"],
+			  customTypes: [],
+			},
+		  }
+		);
+	  })(),
+	  PlayerWon: (() => {
+		return defineComponent(
+		  world,
+		  { 
+			timestamp: RecsType.Number, 
+			gameId: RecsType.BigInt,
+			winner: RecsType.String, 
+		  },
+		  {
+			metadata: {
+			  name: "PlayerWon",
+			  types: ["u64", "felt252", "felt252"],
+			  customTypes: [],
+			},
+		  }
+		);
+	  })(),
 	  GameEnded: (() => {
 		return defineComponent(
 		  world,
 		  { 
 			timestamp: RecsType.Number, 
 			gameId: RecsType.BigInt, 
-			winning_player: RecsType.String,
 		  },
 		  {
 			metadata: {
 			  name: "GameEnded",
-			  types: ["u64", "felt252", "felt252"],
+			  types: ["u64", "felt252"],
 			  customTypes: [],
 			},
 		  }

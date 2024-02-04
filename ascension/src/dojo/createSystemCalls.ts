@@ -22,16 +22,16 @@ export type ContractComponents = Awaited<
 export function createSystemCalls(
   { client }: { client: IWorld },
   contractComponents: ContractComponents,
-  { Position, Player, GameSession, PlayerId }: ClientComponents
+  { Position, Player, PlayerId }: ClientComponents
 ) {
   const spawn = async (account: Account, username: string, gameId: BigNumberish) => {
     const timestamp = Date.now();
     const entityId = getEntityIdFromKeys([BigInt(account.address)]) as Entity;
     const playerId = uuid();
-    Player.addOverride(playerId, {
-      entity: entityId,
-      value: { gameId: BigInt(gameId) },
-    });
+    // Player.addOverride(playerId, {
+    //   entity: entityId,
+    //   value: { gameId: BigInt(gameId) },
+    // });
 
     try {
       const { transaction_hash } = await client.actions.spawn({
@@ -48,9 +48,9 @@ export function createSystemCalls(
       );
     } catch (e) {
       console.log("Error Caught in Spawn Function: ", e);
-      Player.removeOverride(playerId);
+      // Player.removeOverride(playerId);
     } finally {
-      Player.removeOverride(playerId);
+      // Player.removeOverride(playerId);
     }
   };
 
@@ -99,14 +99,11 @@ export function createSystemCalls(
       BigInt(playerId?.toString() || "0"),
       gameId ? BigInt(gameId) : BigInt(0),
     ]);
-    console.log("posEntity: ", posEntity);
     const position = getComponentValue(Position, posEntity);
-    console.log("position: ", position);
     const new_position = updatePositionWithDirection(
       dir,
       position || { x: 0, y: 0 }
     );
-    console.log("new_position: ", new_position);
 
     if (!position) {
       console.warn("cannot move without a player position, not yet spawned?");
