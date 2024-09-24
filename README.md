@@ -1,5 +1,7 @@
 # Ascension (Dojo Version)
 
+![Example Image](./ascension/src/assets/Ascension%20demo%20gif%20high-res.gif)
+
 Ascension is is a simple PvP game inspired by [Tank Turn Tactics](https://www.youtube.com/watch?v=aOYbR-Q_4Hs) from Australian game developer Halfbrick Studios. 
 
 Players spawn on a grid with an initial amount of health points, action points and range. Action points can be claimed every 30 seconds and are required to move, attack and boost range. Players can also choose to donate an action point to another player instead of using it themselves. 
@@ -8,9 +10,14 @@ The objective of the game is to eliminate all other competitors, however defeate
 
 Victory in Ascension is decided by how well one can manipulate other players. Pacts can be made between players to pool action points and launch deadly strikes against others, but as this game only has one winner, at some point all pacts must be broken. Players need to think carefully about how and when they choose to betray others, as creating too many enemies will result in a player’s living rivals receiving disproportionate action points from fallen players. 
 
+## Game Client:
+
+You can play the game here (requires two separate browser sessions): 
+https://ascension-dojo.vercel.app/
+
 ## Purpose
 
-The purpose of this project was to build a simple game in both MUD and Dojo to see how the engines and development experience differed. The report acoomanying these builds can be found here: <insert link>
+The purpose of this project was to build a simple game in both MUD and Dojo to see how the engines and development experience differed. The report accompanying these builds can be found here: <insert link>
 
 The MUD repo can be found here: https://github.com/0xtechnoir/ascension
 

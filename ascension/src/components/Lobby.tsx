@@ -3,6 +3,7 @@ import { useGameContext } from "../hooks/GameContext";
 import { useEntityQuery } from "@dojoengine/react";
 import { getComponentValue, Has, HasValue } from "@dojoengine/recs";
 import { useDojo } from "../dojo/useDojo";
+import { Icon } from 'semantic-ui-react'
 
 const Lobby: React.FC = () => {
   const { setGameId, displayMessage, setPlayerInGameId, playerInGameId, setShowGameBoard } = useGameContext();
@@ -95,30 +96,34 @@ const Lobby: React.FC = () => {
       });
     }
   };
-
+  // <ActionButton fill disabled={isDeploying} onClick={() => applyFromClipboard()} label={<>Import&nbsp;&nbsp;<Icon name='paste' size='small' /></>} />
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="p-8 rounded shadow-md w-120 text-white bg-slate-900 border border-gray-500">
         <h1 className="text-3xl font-bold mb-4">Welcome to Ascension</h1>
         <button className="btn-sci-fi" onClick={create}>
-          {isDeploying ? "deploying burner" : "create burner"}
+          {isDeploying ? "deploying burner" : "Contruct a ship"}
         </button>
         {list().length > 0 && (
           <button
             className="btn-sci-fi"
             onClick={async () => await copyToClipboard()}
           >
-            Save Burners to Clipboard
+            Export
           </button>
         )}
         <button className="btn-sci-fi" onClick={handleRestoreBurners}>
-          Restore Burners from Clipboard
+          <>
+            Import&nbsp;&nbsp;
+            <Icon name='paste' size='small'/>
+          </>
         </button>
         {clipboardStatus.message && (
           <div className={clipboardStatus.isError ? "error" : "success"}>
             {clipboardStatus.message}
           </div>
         )}
+        
         {list().length > 0 && (
           <>
             <div className="card">

@@ -7,6 +7,8 @@ import { useGameContext } from "../hooks/GameContext";
 import { useDojo } from "../dojo/useDojo";
 import { Player as PlayerComponent } from "./Player";
 import { getEntityIdFromKeys } from "@dojoengine/utils";
+// import an image from the assets folder
+import rocket from "../assets/ships/ship_1.png";
 
 interface GameBoardProps {
   players: Entity[];
@@ -56,7 +58,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({ players }) => {
     const position = getComponentValueStrict(Position, posEntity);
     let emoji = getComponentValue(Alive, entity)?.value
       ? entity === playerEntity[0]
-        ? "🚀"
+        ? <img src={rocket} alt="Rocket" className="w-6 h-6" />
         : "🛸"
       : "💀";
       return {
